@@ -1,0 +1,4 @@
+rootProject.name = 'RDS'
+include 'rds-api'
+include 'rds-common'
+include 'rds-batch'
