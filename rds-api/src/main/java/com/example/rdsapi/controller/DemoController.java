@@ -22,4 +22,10 @@ public class DemoController {
     public String find(){
         return demoService.find();
     }
+
+
+    @GetMapping("/findAllUser")
+    public ApiDataResponse<List<UserAccount>> findAllUser(){
+        return ApiDataResponse.of(demoService.findAll());
+    }
 }
