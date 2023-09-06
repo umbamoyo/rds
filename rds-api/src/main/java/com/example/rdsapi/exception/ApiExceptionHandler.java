@@ -38,7 +38,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     // DB 무결성 위반 핸들링 : 중복된 닉네임, 이메일등을 입력할 경우 처리
     @ExceptionHandler
     public ResponseEntity<Object> validation(DataIntegrityViolationException e, WebRequest request) {
-        return handleExceptionInternal(e, ErrorCode.EMAIL_OR_NICKNAME_EXIST, request);
+        return handleExceptionInternal(e, ErrorCode.DB_CONFLICT, request);
     }
 
 

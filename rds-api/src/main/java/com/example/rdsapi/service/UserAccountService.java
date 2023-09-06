@@ -40,7 +40,7 @@ public class UserAccountService {
     // 중복 닉네임 여부 체크
     public boolean nickNameDuplicateCheck(String nickName){
         if(userAccountRepository.existsByNickname(nickName)){
-            throw new GeneralException(ErrorCode.EMAIL_OR_NICKNAME_EXIST, "이미 사용중인 닉네임 입니다.");
+            throw new GeneralException(ErrorCode.NICKNAME_EXIST, "이미 사용중인 닉네임 입니다.");
         }
         return true;
     }
@@ -48,7 +48,7 @@ public class UserAccountService {
     // 중복 아이디 여부 체크
     public boolean userIdDuplicateCheck(String userId){
         if(userAccountRepository.existsById(userId)){
-            throw new GeneralException(ErrorCode.EMAIL_OR_NICKNAME_EXIST, "이미 사용중인 이메일 입니다.");
+            throw new GeneralException(ErrorCode.ID_EXIST, "이미 사용중인 이메일 입니다.");
         }
         return true;
     }

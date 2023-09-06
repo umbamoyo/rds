@@ -17,6 +17,7 @@ public enum ErrorCode {
     VALIDATION_ERROR(10001, HttpStatus.BAD_REQUEST, "Validation error"),
     ID_EXIST(1002,HttpStatus.CONFLICT,"Duplicate ID"),
     NICKNAME_EXIST(1003,HttpStatus.CONFLICT,"Duplicate NickName"),
+    DB_CONFLICT(1003,HttpStatus.CONFLICT,"DB_CONFLICT"),
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
     ;
 
