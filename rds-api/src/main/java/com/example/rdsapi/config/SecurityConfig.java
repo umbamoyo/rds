@@ -23,23 +23,4 @@ public class SecurityConfig {
                 .csrf().disable()
                 .build();
     }
-
-
-    // CORS 관련 설정
-    @Bean
-    public CorsConfigurationSource configurationSource(){
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("*"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**",config);
-
-        return source;
-    }
-
 }
