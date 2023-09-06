@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/board
-    username: jyuka
+    username: rds
     password: 1234
   jpa:
     defer-datasource-initialization: true
