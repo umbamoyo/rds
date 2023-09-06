@@ -15,7 +15,8 @@ public enum ErrorCode {
     OK(0, HttpStatus.OK, "Ok"),
     BAD_REQUEST(10000, HttpStatus.BAD_REQUEST, "Bad request"),
     VALIDATION_ERROR(10001, HttpStatus.BAD_REQUEST, "Validation error"),
-    EMAIL_OR_NICKNAME_EXIST(1002,HttpStatus.CONFLICT,"Duplicate Email or NickName"),
+    ID_EXIST(1002,HttpStatus.CONFLICT,"Duplicate ID"),
+    NICKNAME_EXIST(1003,HttpStatus.CONFLICT,"Duplicate NickName"),
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
     ;
 
@@ -46,7 +47,8 @@ public enum ErrorCode {
     }
 
     public String getMessage(Throwable e) {
-        return this.getMessage(this.getMessage() + " - " + e.getMessage());
+//        return this.getMessage(this.getMessage() + " - " + e.getMessage());
+        return this.getMessage(e.getMessage());
     }
 
     public String getMessage(String message) {
