@@ -132,8 +132,12 @@ function Cover() {
       body: JSON.stringify({ nickName: userValue.nickName }),
     })
       .then((res) => {
-        // 200 : 사용가능, 409 : 중복된 아이디
-        if (res.status === 200 || res.status === 409) {
+        // 200 : 사용가능, 409 : 중복된 닉네임
+        if (res.status === 200) {
+          return res.json();
+        }
+        if (res.status === 409) {
+          setCorrect({ ...correct, nickName: false });
           return res.json();
         } else {
           alert("서버와 통신이 원활하지 않습니다.");
@@ -143,13 +147,14 @@ function Cover() {
       .then((json) => {
         console.log(json);
         msg = json.message;
-        setNickCheck(true);
+        flag = true;
         setMessage({ ...message, nickName: msg });
       })
       .catch((err) => {
         console.error("에러 ", err);
         alert("서버와 통신이 원활하지 않습니다.");
       });
+    setNickCheck(flag);
   };
 
   //패스워드 입력창 체인지 이벤트 핸들러
@@ -243,7 +248,11 @@ function Cover() {
       body: JSON.stringify({ userId: userValue.userId }),
     })
       .then((res) => {
-        if (res.status === 200 || res.status === 409) {
+        if (res.status === 200) {
+          return res.json();
+        }
+        if (res.status === 409) {
+          setCorrect({ ...correct, userId: false });
           return res.json();
         } else {
           alert("서버와 통신이 원활하지 않습니다.");
