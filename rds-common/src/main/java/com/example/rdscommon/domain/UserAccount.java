@@ -11,47 +11,47 @@ import java.util.Objects;
 @Getter
 @ToString(callSuper = true)
 @Table(indexes = {
-        @Index(columnList = "email", unique = true),
+        @Index(columnList = "nickname", unique = true),
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy")
 })
 @Entity
 public class UserAccount extends AuditingFields {
     @Id
-    @Column(length = 50)
+    @Column(length = 100)
     private String userId;
     @Setter
     @Column(nullable = false)
     private String userPassword;
 
     @Setter
-    @Column(length = 100)
-    private String email;
-    @Setter
-    @Column(length = 100)
+    @Column(length = 15)
     private String nickname;
     @Setter
     private String memo;
 
+    @Setter
+    @Column(length = 100)
+    private String interLock;   // sns 계정인 경우 사이트 계정과 연통했을 떄 사용
+
 
     protected UserAccount() {}
 
-    private UserAccount(String userId, String userPassword, String email, String nickname, String memo, String createdBy) {
+    private UserAccount(String userId, String userPassword, String nickname, String memo, String createdBy) {
         this.userId = userId;
         this.userPassword = userPassword;
-        this.email = email;
         this.nickname = nickname;
         this.memo = memo;
         this.createdBy = createdBy;
         this.modifiedBy = createdBy;
     }
 
-    public static UserAccount of(String userId, String userPassword, String email, String nickname, String memo) {
-        return UserAccount.of(userId, userPassword, email, nickname, memo, null);
+    public static UserAccount of(String userId, String userPassword, String nickname, String memo) {
+        return UserAccount.of(userId, userPassword, nickname, memo, null);
     }
 
-    public static UserAccount of(String userId, String userPassword, String email, String nickname, String memo, String createdBy) {
-        return new UserAccount(userId, userPassword, email, nickname, memo, createdBy);
+    public static UserAccount of(String userId, String userPassword, String nickname, String memo, String createdBy) {
+        return new UserAccount(userId, userPassword, nickname, memo, createdBy);
     }
 
     @Override

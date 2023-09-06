@@ -5,4 +5,5 @@ import com.example.rdscommon.domain.UserAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserAccountRepository extends JpaRepository<UserAccount,String> {
+    boolean existsByNickname(String nickName);
 }

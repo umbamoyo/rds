@@ -24,12 +24,20 @@ public class ApiDataResponse<T> extends ApiErrorResponse {
         super(true, errorCode, customMessage);
         this.data = data;
     }
+    private ApiDataResponse(String customMessage, T data) {
+        super(true, ErrorCode.OK.getCode(), customMessage);
+        this.data = data;
+    }
 
     public static <T> ApiDataResponse<T> of(T data) {
         return new ApiDataResponse<>(data);
     }
     public static <T> ApiDataResponse<T> of(Integer errorCode, String customMessage, T data) {
         return new ApiDataResponse<>(errorCode,customMessage,data);
+    }
+
+    public static <T> ApiDataResponse<T> emptyWithCustomMessage(String customMessage) {
+        return new ApiDataResponse<>(customMessage, null);
     }
 
     public static <T> ApiDataResponse<T> empty() {
