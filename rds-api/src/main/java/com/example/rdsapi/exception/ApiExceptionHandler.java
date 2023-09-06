@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Spring 에서 이미 구현된 Exception Handler 를 상속 받아 간단하게 예외처리
@@ -44,27 +46,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException e, HttpHeaders headers, HttpStatus status, WebRequest request
     ) {
-        List<ValidError> errorList = new ArrayList<>();
         BindingResult bindingResult = e.getBindingResult();
-
-        bindingResult.getAllErrors().forEach(
-                error -> {
-                    FieldError field = (FieldError) error;
-                    errorList.add(
-                            ValidError.builder()
-                                    .field(field.getField())
-                                    .message(field.getDefaultMessage())
-                                    .invalidValue(field.getRejectedValue().toString())
-                                    .build()
-                    );
-                }
-        );
-
+        FieldError error = (FieldError) bindingResult.getAllErrors().stream().findFirst().get();
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
 
         return super.handleExceptionInternal(
                 e,
-                ApiErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(errorList.toString())),
+                ApiErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(error.getDefaultMessage())),
                 headers,
                 status,
                 request
