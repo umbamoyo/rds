@@ -134,6 +134,7 @@ function Cover() {
       .then((res) => {
         // 200 : 사용가능, 409 : 중복된 닉네임
         if (res.status === 200) {
+          flag = true;
           return res.json();
         }
         if (res.status === 409) {
@@ -147,14 +148,13 @@ function Cover() {
       .then((json) => {
         console.log(json);
         msg = json.message;
-        flag = true;
+        setNickCheck(flag);
         setMessage({ ...message, nickName: msg });
       })
       .catch((err) => {
         console.error("에러 ", err);
         alert("서버와 통신이 원활하지 않습니다.");
       });
-    setNickCheck(flag);
   };
 
   //패스워드 입력창 체인지 이벤트 핸들러
@@ -210,7 +210,8 @@ function Cover() {
   //이메일 입력창 체인지 이벤트 핸들러
   const emailHandler = (e) => {
     const inputVal = e.target.value;
-
+    setEmailBtn(false);
+    setEmailCheck(false);
     const emailRegex =
       /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
 
@@ -232,8 +233,22 @@ function Cover() {
     });
   };
 
+  //이메일 전송 요청
+  const mailSend = async () => {
+    const res = await fetch(`${API_BASE_URL}/api/v1/sendAuthenticationEmailCode`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ userId: userValue.userId }),
+    }).catch((err) => {
+      console.error("에러 ", err);
+      alert("서버와 통신이 원활하지 않습니다.");
+    });
+
+    alert(res.json().message);
+  };
+
   //이메일 인증하기 버튼 클릭
-  const mailSend = (e) => {
+  const emailBtnHandler = (e) => {
     e.preventDefault();
     let msg,
       flag = false;
@@ -249,6 +264,8 @@ function Cover() {
     })
       .then((res) => {
         if (res.status === 200) {
+          flag = true;
+          mailSend();
           return res.json();
         }
         if (res.status === 409) {
@@ -263,13 +280,43 @@ function Cover() {
         console.log(json);
         msg = json.message;
         setMessage({ ...message, userId: msg });
-        flag = true;
+        setEmailBtn(flag);
       })
       .catch((err) => {
         console.error("에러 ", err);
         alert("서버와 통신이 원활하지 않습니다.");
       });
-    setEmailBtn(flag);
+  };
+
+  // 인증번호 확인 요청
+  const emailCheckHandler = async () => {
+    const $mailCheck = document.getElementById("mailCheck");
+    if (!$mailCheck) {
+      alert("인증번호를 입력해주세요");
+      return;
+    }
+    const res = await fetch(`${API_BASE_URL}/api/v1/checkAuthenticationEmailCode`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ userId: userValue.userId, code: $mailCheck }),
+    }).catch((err) => {
+      console.error("에러 ", err);
+      alert("서버와 통신이 원활하지 않습니다.");
+    });
+
+    //잘못된 요청시 경고창 띄움
+    if (res.status !== 200) {
+      const json = res.json();
+      alert(json.message);
+      return;
+    }
+
+    if (res.status === 200) {
+      alert("메일 인증에 성공했습니다.");
+      setEmailCheck(true);
+    } else {
+      alert("서버와 통신이 원활하지 않습니다.");
+    }
   };
 
   //4개의 입력칸이 모두 검증에 통과했는지 여부를 검사
@@ -323,10 +370,10 @@ function Cover() {
       alert("닉네임 중복 체크를 진행해주세요.");
       return;
     }
-    // if (!emailCheck) {
-    //   alert("이메일 인증을 진행해주세요.");
-    //   return;
-    // }
+    if (!emailCheck) {
+      alert("이메일 인증을 진행해주세요.");
+      return;
+    }
     else {
       fetchJoin();
     }
@@ -382,15 +429,21 @@ function Cover() {
                   fullWidth
                 />
               </MDBox>
-              <MDButton variant="gradient" color="info" size="small" onClick={mailSend}>
-                인증하기
-              </MDButton>
+              {emailBtn ? (
+                <MDButton variant="gradient" color="info" size="small" onClick={mailSend}>
+                  다시전송
+                </MDButton>
+              ) : (
+                <MDButton variant="gradient" color="info" size="small" onClick={emailBtnHandler}>
+                  인증하기
+                </MDButton>
+              )}
             </MDBox>
             <MDBox mb={2} style={{ display: emailBtn ? "flex" : "none" }}>
               <MDBox width={"80%"}>
-                <MDInput type="text" label="Code" variant="standard" fullWidth />
+                <MDInput type="text" label="Code" variant="standard" id="mailCheck" fullWidth />
               </MDBox>
-              <MDButton variant="gradient" color="info" size="small">
+              <MDButton variant="gradient" color="info" size="small" onClick={emailCheckHandler}>
                 인증확인
               </MDButton>
             </MDBox>
