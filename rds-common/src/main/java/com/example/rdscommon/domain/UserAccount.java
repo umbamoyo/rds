@@ -2,11 +2,13 @@ package com.example.rdscommon.domain;
 
 import com.example.rdscommon.config.AuditingFields;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @ToString(callSuper = true)
@@ -16,6 +18,7 @@ import java.util.Objects;
         @Index(columnList = "createdBy")
 })
 @Entity
+@NoArgsConstructor
 public class UserAccount extends AuditingFields {
     @Id
     @Column(length = 100)
@@ -34,8 +37,10 @@ public class UserAccount extends AuditingFields {
     @Column(length = 100)
     private String interLock;   // sns 계정인 경우 사이트 계정과 연통했을 떄 사용
 
-
-    protected UserAccount() {}
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name="user_id")
+    @Setter
+    private Set<RoleType> roleTypes;
 
     private UserAccount(String userId, String userPassword, String nickname, String memo, String createdBy) {
         this.userId = userId;
