@@ -16,6 +16,23 @@ spring:
   h2.console.enabled: false
   sql.init.mode: always
 
+# mail properties
+mail:
+  smtp:
+    auth: true
+    starttls:
+      enable: true
+      required: true
+    socketFactory:
+      class: javax.net.ssl.SSLSocketFactory
+      fallback: false
+      port: 465
+    port: 465
+
+# admin 구글 계정
+AdminMail:
+  id:  sdj799@gmail.com
+  password:  = kkxo umty tisf yrzj
 ---
 spring:
   config:
@@ -24,3 +41,4 @@ spring:
   datasource:
     url: jdbc:h2:mem:board;mode=mysql
     driver-class-name: org.h2.Driver
+
