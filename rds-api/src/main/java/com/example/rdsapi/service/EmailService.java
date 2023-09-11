@@ -6,15 +6,22 @@ import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.example.rdscommon.domain.EmailCode;
+import com.example.rdscommon.repository.EmailCodeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class EmailService {
-    @Autowired
-    JavaMailSender emailSender;
+
+    private final JavaMailSender emailSender;
+
+
+    private final EmailCodeRepository emailCodeRepository;
 
     public static final int ePw = makeRandomNumber();
 
@@ -65,5 +72,10 @@ public class EmailService {
             throw new IllegalArgumentException();
         }
         return ePw;
+    }
+
+    public void saveCode(String code)throws Exception {
+        EmailCode emailCode =
+        emailCodeRepository.save()
     }
 }
