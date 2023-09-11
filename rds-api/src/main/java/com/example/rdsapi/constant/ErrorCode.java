@@ -19,10 +19,15 @@ public enum ErrorCode {
     NICKNAME_EXIST(1003,HttpStatus.CONFLICT,"Duplicate NickName"),
     DB_CONFLICT(1003,HttpStatus.CONFLICT,"DB_CONFLICT"),
     ACCESS_DENIED(1004,HttpStatus.FORBIDDEN,"Access Denied"),
+    USER_NOT_FOUND(1005, HttpStatus.BAD_REQUEST,"사용자 정보를 찾을 수 없습니다."),
 
 
     NOT_INVALID_ID_OR_PASSWORD(2000,HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호를 확인해 주세요."),
+    EMAIL_AUTHENTICATION_CODE_EXPIRE(2004,HttpStatus.BAD_REQUEST, "인증유효시간이 만료되었습니다."),
+    EMAIL_AUTHENTICATION_NOT_INVALID(2005,HttpStatus.BAD_REQUEST, "인증코드를 확인해 주세요."),
+
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
+    EMAIL_EXCEPTION(20001, HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 중 오류가 발생하였습니다."),
 
     IS_NOT_JWT(50000, HttpStatus.UNAUTHORIZED, "Is not Jwt"),
     USER_INACTIVE(50001, HttpStatus.UNAUTHORIZED, "User inactive error"),
@@ -31,7 +36,6 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_VALID(50004,HttpStatus.UNAUTHORIZED,"Refresh token not valid"),
     NOT_FOUND_SIGNATURE(50005,HttpStatus.UNAUTHORIZED,"Not found signature in Jwt"),
     IS_TOKEN_DIFFERENT(50006,HttpStatus.UNAUTHORIZED, "The types of tokens are different."),
-    EMAIL_AUTHENTICATION_CODE_EXPIRE(50007,HttpStatus.BAD_REQUEST,"Email authentication code is expired.")
     ;
 
     private final Integer code;
