@@ -13,6 +13,7 @@ import javax.swing.text.html.Option;
 
 import com.example.rdsapi.constant.ErrorCode;
 import com.example.rdsapi.exception.GeneralException;
+import com.example.rdscommon.repository.EmailCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+
     private final JavaMailSender emailSender;
     private final Random random;
     private final EmailCodeRepository emailCodeRepository;
@@ -119,5 +121,4 @@ public class EmailService {
         emailCodeRepository.delete(emailCodeEntity);
         return true;
     }
-
 }
