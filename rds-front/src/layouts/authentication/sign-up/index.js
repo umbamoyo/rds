@@ -44,6 +44,13 @@ function Cover() {
   //이메일 인증 유무
   const [emailCheck, setEmailCheck] = useState(false);
 
+  //이메일 인증 입력값
+  const [emailInput, setEmailInput] = useState();
+
+  const emailInputHandler = (e) => {
+    setEmailInput(e.target.value);
+  };
+
   //상태변수로 회원가입 입력값 관리
   const [userValue, setUserValue] = useState({
     nickName: "",
@@ -243,8 +250,8 @@ function Cover() {
       console.error("에러 ", err);
       alert("서버와 통신이 원활하지 않습니다.");
     });
-
-    alert(await res.json().message);
+    console.log(res.json());
+    alert("이메일을 수신하지 못하였으면 재 전송 버튼을 눌러주세요");
   };
 
   //이메일 인증하기 버튼 클릭
@@ -290,15 +297,15 @@ function Cover() {
 
   // 인증번호 확인 요청
   const emailCheckHandler = async () => {
-    const $mailCheck = document.getElementById("mailCheck");
-    if (!$mailCheck) {
+    if (!emailInput) {
       alert("인증번호를 입력해주세요");
       return;
     }
+    console.log(emailInput);
     const res = await fetch(`${API_BASE_URL}/api/v1/checkAuthenticationEmailCode`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ userId: userValue.userId, code: $mailCheck }),
+      body: JSON.stringify({ userId: userValue.userId, code: emailInput }),
     }).catch((err) => {
       console.error("에러 ", err);
       alert("서버와 통신이 원활하지 않습니다.");
@@ -306,7 +313,8 @@ function Cover() {
 
     //잘못된 요청시 경고창 띄움
     if (res.status !== 200) {
-      const json = await res.json();
+      const json = res.json();
+      console.log(json);
       alert(json.message);
       return;
     }
@@ -440,7 +448,13 @@ function Cover() {
             </MDBox>
             <MDBox mb={2} style={{ display: emailBtn ? "flex" : "none" }}>
               <MDBox width={"80%"}>
-                <MDInput type="text" label="Code" variant="standard" id="mailCheck" fullWidth />
+                <MDInput
+                  type="text"
+                  label="Code"
+                  variant="standard"
+                  fullWidth
+                  onChange={emailInputHandler}
+                />
               </MDBox>
               <MDButton variant="gradient" color="info" size="small" onClick={emailCheckHandler}>
                 인증확인

@@ -1,5 +1,6 @@
 package com.example.rdsapi.controller;
 
+import com.example.rdsapi.dto.request.CheckAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SendAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SignInRequest;
 import com.example.rdsapi.dto.response.SignInResponse;
@@ -54,15 +55,15 @@ public class AuthenticationController {
             @Valid @RequestBody SendAuthenticationEmailCodeRequest request
     ){
         emailService.sendSignUpAuthenticationMail(request.toDto());
-        return ApiDataResponse.empty();
+        return ApiDataResponse.emptyWithCustomMessage("이메일을 수신하지 못하였으면 재 전송 버튼을 눌러주세요");
     }
 
     @PostMapping("/checkAuthenticationEmailCode")
     public ApiDataResponse<Object> checkAuthenticationEmailCode(
-            @Valid @RequestBody SendAuthenticationEmailCodeRequest request
+            @Valid @RequestBody CheckAuthenticationEmailCodeRequest request
     ){
         emailService.authenticate(request.toDto());
-        return ApiDataResponse.empty();
+        return ApiDataResponse.emptyWithCustomMessage("Success Email Authentication");
     }
 
 }

@@ -69,6 +69,7 @@ public class EmailService {
         try{
             emailSender.send(preparator);
         }catch (MailException e){
+            e.printStackTrace();
             throw new GeneralException(ErrorCode.EMAIL_EXCEPTION);
         }
     }
