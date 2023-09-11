@@ -244,7 +244,7 @@ function Cover() {
       alert("서버와 통신이 원활하지 않습니다.");
     });
 
-    alert(res.json().message);
+    alert(await res.json().message);
   };
 
   //이메일 인증하기 버튼 클릭
@@ -306,7 +306,7 @@ function Cover() {
 
     //잘못된 요청시 경고창 띄움
     if (res.status !== 200) {
-      const json = res.json();
+      const json = await res.json();
       alert(json.message);
       return;
     }
@@ -341,7 +341,7 @@ function Cover() {
 
     //잘못된 요청시 경고창 띄움
     if (res.status !== 200) {
-      const json = res.json();
+      const json = await res.json();
       if (json.errorCode === 1002) {
         alert("이메일이 중복 되었습니다.");
       }
@@ -373,8 +373,7 @@ function Cover() {
     if (!emailCheck) {
       alert("이메일 인증을 진행해주세요.");
       return;
-    }
-    else {
+    } else {
       fetchJoin();
     }
   };

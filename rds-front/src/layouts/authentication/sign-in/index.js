@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState } from "react";
+import { useContext, useState, useEffect } from "react";
 
 // react-router-dom components
 import { Link, useNavigate } from "react-router-dom";
@@ -41,12 +41,29 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
+// 사용자 정보 저장
+import AuthContext from "util/AuthContext";
+import CustomSnackBar from "components/MDSnackbar/CustomSnackbar";
+
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const redirection = useNavigate();
+
+  // AuthContext에서 onLogin 함수를 가져옵니다.
+  const { onLogin, isLoggedIn } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      setOpen(true);
+      setTimeout(() => {
+        redirection("/");
+      }, 1000);
+    }
+  }, [isLoggedIn, redirection]);
 
   const [userId, setUserId] = useState();
   const [password, setPassword] = useState();
@@ -78,12 +95,9 @@ function Basic() {
 
     //잘못된 요청시 경고창 띄움
     if (res.status !== 200) {
-      const json = res.json();
-      if (json.errorCode === 1002) {
-        alert("이메일이 중복 되었습니다.");
-      }
-      if (json.errorCode === 1003) {
-        alert("닉네임이 중복 되었습니다.");
+      const json = await res.json();
+      if (res.status === 401) {
+        alert(json.message);
       } else {
         alert("서버와 통신이 원활하지 않습니다.");
       }
@@ -91,90 +105,97 @@ function Basic() {
     }
 
     if (res.status === 200) {
+      const { tokenBox, nickName } = await res.json().data;
       alert("로그인 성공했습니다.");
+      onLogin(tokenBox, nickName, rememberMe);
       redirection("/");
     }
   };
 
   return (
-    <BasicLayout image={bgImage}>
-      <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="info"
-          mx={2}
-          mt={-3}
-          p={2}
-          mb={1}
-          textAlign="center"
-        >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            로그인
-          </MDTypography>
-          <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <FacebookIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GitHubIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GoogleIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-          </Grid>
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
-            <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth onChange={emailHandler} />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth onChange={pwHandler} />
-            </MDBox>
-            <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                onClick={handleSetRememberMe}
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;저장하기
-              </MDTypography>
-            </MDBox>
-            <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth onClick={loginHandler}>
+    <>
+      {!isLoggedIn && (
+        <BasicLayout image={bgImage}>
+          <Card>
+            <MDBox
+              variant="gradient"
+              bgColor="info"
+              borderRadius="lg"
+              coloredShadow="info"
+              mx={2}
+              mt={-3}
+              p={2}
+              mb={1}
+              textAlign="center"
+            >
+              <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
                 로그인
-              </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                회원이 아니신가요?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/authentication/sign-up"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  회원가입하기
-                </MDTypography>
               </MDTypography>
+              <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
+                <Grid item xs={2}>
+                  <MDTypography component={MuiLink} href="#" variant="body1" color="white">
+                    <FacebookIcon color="inherit" />
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography component={MuiLink} href="#" variant="body1" color="white">
+                    <GitHubIcon color="inherit" />
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography component={MuiLink} href="#" variant="body1" color="white">
+                    <GoogleIcon color="inherit" />
+                  </MDTypography>
+                </Grid>
+              </Grid>
             </MDBox>
-          </MDBox>
-        </MDBox>
-      </Card>
-    </BasicLayout>
+            <MDBox pt={4} pb={3} px={3}>
+              <MDBox component="form" role="form">
+                <MDBox mb={2}>
+                  <MDInput type="email" label="Email" fullWidth onChange={emailHandler} />
+                </MDBox>
+                <MDBox mb={2}>
+                  <MDInput type="password" label="Password" fullWidth onChange={pwHandler} />
+                </MDBox>
+                <MDBox display="flex" alignItems="center" ml={-1}>
+                  <Switch checked={rememberMe} onChange={handleSetRememberMe} />
+                  <MDTypography
+                    variant="button"
+                    fontWeight="regular"
+                    color="text"
+                    onClick={handleSetRememberMe}
+                    sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
+                  >
+                    &nbsp;&nbsp;저장하기
+                  </MDTypography>
+                </MDBox>
+                <MDBox mt={4} mb={1}>
+                  <MDButton variant="gradient" color="info" fullWidth onClick={loginHandler}>
+                    로그인
+                  </MDButton>
+                </MDBox>
+                <MDBox mt={3} mb={1} textAlign="center">
+                  <MDTypography variant="button" color="text">
+                    회원이 아니신가요?{" "}
+                    <MDTypography
+                      component={Link}
+                      to="/authentication/sign-up"
+                      variant="button"
+                      color="info"
+                      fontWeight="medium"
+                      textGradient
+                    >
+                      회원가입하기
+                    </MDTypography>
+                  </MDTypography>
+                </MDBox>
+              </MDBox>
+            </MDBox>
+          </Card>
+        </BasicLayout>
+      )}{" "}
+      <CustomSnackBar open={open} />
+    </>
   );
 }
 
