@@ -1,9 +1,11 @@
 package com.example.rdsapi.controller;
 
+import com.example.rdsapi.dto.request.SendAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SignInRequest;
 import com.example.rdsapi.dto.response.SignInResponse;
 import com.example.rdsapi.dto.response.common.ApiDataResponse;
 import com.example.rdsapi.service.AuthenticationService;
+import com.example.rdsapi.service.EmailService;
 import com.example.rdsapi.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -22,6 +25,7 @@ import java.util.List;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
+    private final EmailService emailService;
 
     @PostMapping("/signIn")
     public ApiDataResponse<SignInResponse> login(
@@ -43,5 +47,14 @@ public class AuthenticationController {
 //
 //        return ApiDataResponse.of(res);
 //    }
+
+
+    @PostMapping("/sendAuthenticationEmailCode")
+    public ApiDataResponse<Object> sendAuthenticationEmailCode(
+            @Valid @RequestBody SendAuthenticationEmailCodeRequest request
+    ) throws Exception {
+        String code = emailService.sendSimpleMessage(request.userId());
+
+    }
 
 }
