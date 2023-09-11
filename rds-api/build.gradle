@@ -33,13 +33,15 @@ dependencies {
 	implementation project(':rds-common') // root project --> settings.gradle 선언한 값과 동일해야함
 
 
-	// Spring Security
 	// spring security 추가
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
 
 	// java mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 tasks.named('test') {

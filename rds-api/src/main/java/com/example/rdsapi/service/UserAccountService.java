@@ -1,8 +1,9 @@
 package com.example.rdsapi.service;
 
 import com.example.rdsapi.constant.ErrorCode;
-import com.example.rdsapi.dto.SignUpDto;
 import com.example.rdsapi.exception.GeneralException;
+import com.example.rdsapi.security.domain.UserPrincipal;
+import com.example.rdscommon.domain.UserAccount;
 import com.example.rdscommon.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,23 +12,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
-
-    // 회원가입 로직
-    public void signUp(SignUpDto dto){
-
-        // 중복 아이디 체크
-        userIdDuplicateCheck(dto.userId());
-
-        // 중복 닉네임 체크
-        nickNameDuplicateCheck(dto.nickName());
-
-        // 비밀번호, 비밀번호 확인 일치 여부 확인
-        passwordDuplicateCheck(dto.password(), dto.checkPassword());
-
-        userAccountRepository.save(dto.toEntity());
-
-    }
-
 
     // 비밀번호, 비밀번화 확인 일치 여부 확인
     public boolean passwordDuplicateCheck(String password, String rePassword){
@@ -52,4 +36,18 @@ public class UserAccountService {
         }
         return true;
     }
+
+    public UserPrincipal getUserAccountById(String userId) {
+        UserAccount userAccount = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_INVALID_ID_OR_PASSWORD));
+
+        return UserPrincipal.of(
+                userAccount.getUserId(),
+                userAccount.getUserPassword(),
+                userAccount.getNickname(),
+                userAccount.getMemo(),
+                userAccount.getRoleTypes()
+        );
+    }
+
 }

@@ -18,7 +18,20 @@ public enum ErrorCode {
     ID_EXIST(1002,HttpStatus.CONFLICT,"Duplicate ID"),
     NICKNAME_EXIST(1003,HttpStatus.CONFLICT,"Duplicate NickName"),
     DB_CONFLICT(1003,HttpStatus.CONFLICT,"DB_CONFLICT"),
+    ACCESS_DENIED(1004,HttpStatus.FORBIDDEN,"Access Denied"),
+
+
+    NOT_INVALID_ID_OR_PASSWORD(2000,HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호를 확인해 주세요."),
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
+
+    IS_NOT_JWT(50000, HttpStatus.UNAUTHORIZED, "Is not Jwt"),
+    USER_INACTIVE(50001, HttpStatus.UNAUTHORIZED, "User inactive error"),
+    USER_BAD_CREDENTIALS(50002,HttpStatus.UNAUTHORIZED,"User bad credentials"),
+    TOKEN_NOT_VALID(50003,HttpStatus.UNAUTHORIZED,"Token not valid"),
+    REFRESH_TOKEN_NOT_VALID(50004,HttpStatus.UNAUTHORIZED,"Refresh token not valid"),
+    NOT_FOUND_SIGNATURE(50005,HttpStatus.UNAUTHORIZED,"Not found signature in Jwt"),
+    IS_TOKEN_DIFFERENT(50006,HttpStatus.UNAUTHORIZED, "The types of tokens are different."),
+    EMAIL_AUTHENTICATION_CODE_EXPIRE(50007,HttpStatus.BAD_REQUEST,"Email authentication code is expired.")
     ;
 
     private final Integer code;
