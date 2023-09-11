@@ -10,7 +10,7 @@ import javax.persistence.Id;
 import java.time.LocalDateTime;
 
 @Getter @Setter @ToString
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class EmailCode {
     @Id
@@ -32,7 +32,7 @@ public class EmailCode {
     }
 
     public static EmailCode of(String userId, String code) {
-        return new EmailCode.of(userId, code, null);
+        return EmailCode.of(userId, code, null);
     }
 
     public static EmailCode of(String userId, String code, LocalDateTime createdAt) {

@@ -52,9 +52,17 @@ public class AuthenticationController {
     @PostMapping("/sendAuthenticationEmailCode")
     public ApiDataResponse<Object> sendAuthenticationEmailCode(
             @Valid @RequestBody SendAuthenticationEmailCodeRequest request
-    ) throws Exception {
-        String code = emailService.sendSimpleMessage(request.userId());
+    ){
+        emailService.sendSignUpAuthenticationMail(request.toDto());
+        return ApiDataResponse.empty();
+    }
 
+    @PostMapping("/checkAuthenticationEmailCode")
+    public ApiDataResponse<Object> checkAuthenticationEmailCode(
+            @Valid @RequestBody SendAuthenticationEmailCodeRequest request
+    ){
+        emailService.authenticate(request.toDto());
+        return ApiDataResponse.empty();
     }
 
 }

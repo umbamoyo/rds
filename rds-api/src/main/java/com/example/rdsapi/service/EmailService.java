@@ -12,7 +12,9 @@ import javax.mail.internet.MimeMessage;
 import javax.swing.text.html.Option;
 
 import com.example.rdsapi.constant.ErrorCode;
+import com.example.rdsapi.dto.EmailCodeDto;
 import com.example.rdsapi.exception.GeneralException;
+import com.example.rdscommon.domain.EmailCode;
 import com.example.rdscommon.repository.EmailCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +111,7 @@ public class EmailService {
 
 
         // 인증 유효시간을 초과한 경우
-        if(emailCodeEntity.getCreatedAt().plusMinutes(expireSignUpEmailAuthentication).before(LocalDateTime.now())){
+        if(emailCodeEntity.getCreatedAt().plusMinutes(expireSignUpEmailAuthentication).isBefore(LocalDateTime.now())){
             throw new GeneralException(ErrorCode.EMAIL_AUTHENTICATION_CODE_EXPIRE);
         }
 
