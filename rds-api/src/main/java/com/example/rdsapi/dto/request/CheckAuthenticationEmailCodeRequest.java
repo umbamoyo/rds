@@ -12,5 +12,5 @@ public record CheckAuthenticationEmailCodeRequest(
         String code
 ) {
 
-    public EmailCodeDto toDto() {return EmailCodeDto.of(userId);}
+    public EmailCodeDto toDto() {return EmailCodeDto.of(userId, code);}
 }

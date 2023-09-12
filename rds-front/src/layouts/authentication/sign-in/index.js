@@ -44,6 +44,7 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 // 사용자 정보 저장
 import AuthContext from "util/AuthContext";
 import CustomSnackBar from "components/MDSnackbar/CustomSnackbar";
+import { API_BASE_URL } from "util/host-utils";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
@@ -76,7 +77,7 @@ function Basic() {
     setPassword(e.target.value);
   };
 
-  const loginHandler = async () => {
+  const loginHandler = () => {
     if (!userId) {
       alert("이메일을 입력하세요");
       return;
@@ -85,31 +86,37 @@ function Basic() {
       alert("비밀번호를 입력하세요");
       return;
     }
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/signIn`, {
+    fetch(`${API_BASE_URL}/api/v1/signIn`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ userId, password }),
-    }).catch((err) => {
-      console.error("에러 ", err);
-    });
-
-    //잘못된 요청시 경고창 띄움
-    if (res.status !== 200) {
-      const json = await res.json();
-      if (res.status === 401) {
-        alert(json.message);
-      } else {
-        alert("서버와 통신이 원활하지 않습니다.");
-      }
-      return;
-    }
-
-    if (res.status === 200) {
-      const { tokenBox, nickName } = await res.json().data;
-      alert("로그인 성공했습니다.");
-      onLogin(tokenBox, nickName, rememberMe);
-      redirection("/");
-    }
+    })
+      .catch((err) => {
+        console.error("에러 ", err);
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          return res.json();
+        }
+        //잘못된 요청시 경고창 띄움
+        if (res.status !== 200) {
+          const json = res.json();
+          console.log(json);
+          if (res.status === 401) {
+            alert(json.message);
+          } else {
+            alert("서버와 통신이 원활하지 않습니다.");
+          }
+          return;
+        }
+      })
+      .then((json) => {
+        console.log(json);
+        const { tokenBox, nickName } = json.data;
+        alert("로그인 성공했습니다.");
+        onLogin(tokenBox, nickName, rememberMe);
+        redirection("/");
+      });
   };
 
   return (
