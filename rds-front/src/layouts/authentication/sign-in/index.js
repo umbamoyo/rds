@@ -91,9 +91,6 @@ function Basic() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ userId, password }),
     })
-      .catch((err) => {
-        console.error("에러 ", err);
-      })
       .then((res) => {
         if (res.status === 200) {
           return res.json();
@@ -128,6 +125,10 @@ function Basic() {
         };
         loginHandler(tokenBox, nickName, rememberMe);
         redirection("/");
+      })
+      .catch((err) => {
+        console.error("에러 ", err);
+        alert("서버와 통신이 원활하지 않습니다.");
       });
   };
 

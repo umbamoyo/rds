@@ -57,6 +57,15 @@ const AuthContextProvider = (props) => {
     localStorage.setItem("LOGIN_USERNAME", nickName);
   };
 
+  // 로그인 토큰 정보 얻어오기
+  const getLoginUserInfo = () => {
+    return {
+      accessToken: localStorage.getItem("ACCESS_TOKEN"),
+      refreshToken: localStorage.getItem("REFRESH_TOKEN"),
+      nickName: localStorage.getItem("LOGIN_USERNAME"),
+    };
+  };
+
   //토큰 유효기간 확인 및 재요청
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
@@ -80,15 +89,6 @@ const AuthContextProvider = (props) => {
       const json = await res.json();
       setLoginUserInfo(json.data.tokenBox);
     }
-  };
-
-  // 로그인 토큰 정보 얻어오기
-  const getLoginUserInfo = () => {
-    return {
-      accessToken: localStorage.getItem("ACCESS_TOKEN"),
-      refreshToken: localStorage.getItem("REFRESH_TOKEN"),
-      nickName: localStorage.getItem("LOGIN_USERNAME"),
-    };
   };
 
   return (

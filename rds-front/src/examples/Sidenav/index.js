@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // react-router-dom components
 import { useLocation, NavLink } from "react-router-dom";
@@ -47,11 +47,16 @@ import {
   setWhiteSidenav,
 } from "context";
 
+import { API_BASE_URL } from "util/host-utils";
+
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
 
   let textColor = "white";
 
@@ -62,6 +67,57 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   }
 
   const closeSidenav = () => setMiniSidenav(dispatch, true);
+
+  // 로그인 토큰 정보 얻어오기
+  const getLoginUserInfo = () => {
+    return {
+      accessToken: localStorage.getItem("ACCESS_TOKEN"),
+      refreshToken: localStorage.getItem("REFRESH_TOKEN"),
+      nickName: localStorage.getItem("LOGIN_USERNAME"),
+    };
+  };
+
+  //토큰 및 로그인 유저 데이터를 브라우저에 저장하는 함수
+  const setLoginUserInfo = ({ accessToken, refreshToken }, nickName) => {
+    localStorage.setItem("ACCESS_TOKEN", accessToken);
+    localStorage.setItem("REFRESH_TOKEN", refreshToken);
+    localStorage.setItem("LOGIN_USERNAME", nickName);
+  };
+
+  //토큰 유효기간 확인 및 재요청
+  const updateToken = async () => {
+    const { accessToken, refreshToken } = getLoginUserInfo();
+
+    const res = await fetch(`${API_BASE_URL}/api/vi/updateToken`, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        ACCESS_TOKEN: accessToken,
+        REFRESH_TOKEN: refreshToken,
+      },
+    }).catch((err) => {
+      console.log("에러", err);
+    });
+
+    if (res.status !== 200) {
+      alert(await res.json().message);
+      logoutHandler();
+    }
+    if (res.status === 200) {
+      const json = await res.json();
+      setLoginUserInfo(json.data.tokenBox);
+    }
+  };
+
+  //컴포넌트가 렌더링 될 때 localStorage에서 로그인 정보를 가지고 와서 상태를 설정.
+  useEffect(() => {
+    if (localStorage.getItem("REFRESH_TOKEN")) {
+      setIsLoggedIn(true);
+      setUserName(localStorage.getItem("LOGIN_USERNAME"));
+      console.log(isLoggedIn);
+      // updateToken();
+    }
+  }, []);
 
   useEffect(() => {
     // A function that sets the mini state of the sidenav.
@@ -103,10 +159,20 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             noCollapse={noCollapse}
           />
         </Link>
+      ) : isLoggedIn ? (
+        key !== "sign-in" &&
+        key !== "sign-up" && (
+          <NavLink key={key} to={route}>
+            <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
+          </NavLink>
+        )
       ) : (
-        <NavLink key={key} to={route}>
-          <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
-        </NavLink>
+        key !== "logout" &&
+        key !== "my-page" && (
+          <NavLink key={key} to={route}>
+            <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
+          </NavLink>
+        )
       );
     } else if (type === "title") {
       returnValue = (
