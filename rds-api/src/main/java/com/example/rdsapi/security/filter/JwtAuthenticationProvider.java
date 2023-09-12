@@ -35,8 +35,11 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
 
         String userId = jwtUtil.getUsernameFromJWT(jwt);
-        List<GrantedAuthority> authorities = null;
+        if(!userAccountRepository.existsById(userId)){
+            throw new GeneralException(ErrorCode.USER_NOT_FOUND);
+        }
 
+        List<GrantedAuthority> authorities = null;
         if(tokenType.equals(JwtUtil.TokenType.ACCESS_TOKEN.toString())){
             authorities = jwtUtil.getAuthoritiesFromJWT(jwt);
             authorities.forEach(i-> System.out.println(i.getAuthority()));

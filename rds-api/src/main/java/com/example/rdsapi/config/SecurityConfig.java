@@ -1,12 +1,8 @@
 package com.example.rdsapi.config;
 
-import com.example.rdsapi.security.filter.CustomAccessDeniedHandler;
-import com.example.rdsapi.security.filter.JwtAuthenticationProvider;
-import com.example.rdsapi.security.filter.JwtCheckExceptionHandler;
-import com.example.rdsapi.security.filter.JwtCheckFilter;
-import com.example.rdsapi.security.filter.JwtLoginFilter;
-import com.example.rdsapi.util.JwtUtil;
+import com.example.rdsapi.security.filter.*;
 import com.example.rdsapi.service.UserAccountService;
+import com.example.rdsapi.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +25,7 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
     private final UserAccountService userAccountService;
     private final JwtUtil jwtUtil;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -40,14 +37,23 @@ public class SecurityConfig {
         return http
                 .cors().and()
                 .authorizeRequests(auth -> auth
-                        .mvcMatchers("/api/v1/**").permitAll()
+                        .mvcMatchers(
+                                "/api/v1/user/signUp",
+                                "/api/v1/user/nickNameDuplicateCheck",
+                                "/api/v1/user/userIdDuplicateCheck",
+                                "/api/v1/signIn",
+                                "/api/v1/sendAuthenticationEmailCode",
+                                "/api/v1/checkAuthenticationEmailCode"
+                        )
+                        .permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterAt(jwtCheckFilter, BasicAuthenticationFilter.class)
                 .addFilterAt(jwtLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtCheckExceptionHandler, JwtCheckFilter.class)
                 .exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler(objectMapper)))
-                .authenticationProvider(new JwtAuthenticationProvider(jwtUtil))
+                .authenticationProvider(jwtAuthenticationProvider)
                 .csrf().disable()
                 .build();
     }

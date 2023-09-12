@@ -40,6 +40,6 @@ public class UserController {
 
     @GetMapping("/test")
     public ApiDataResponse<Object> test(){
-        return ApiDataResponse.empty();
+        return ApiDataResponse.emptyWithCustomMessage("test");
     }
 }
