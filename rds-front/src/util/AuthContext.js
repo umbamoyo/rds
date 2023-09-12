@@ -46,8 +46,8 @@ const AuthContextProvider = (props) => {
     localStorage.setItem("ACCESS_TOKEN", accessToken);
     localStorage.setItem("REFRESH_TOKEN", refreshToken);
     localStorage.setItem("LOGIN_USERNAME", nickName);
-    setIsLoggedIn(true);
-    setUserName(nickName);
+    // setIsLoggedIn(true);
+    // setUserName(nickName);
   };
 
   //토큰 및 로그인 유저 데이터를 브라우저에 저장하는 함수

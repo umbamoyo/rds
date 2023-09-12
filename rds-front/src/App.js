@@ -52,7 +52,6 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 // Images
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
-import AuthContextProvider from "util/AuthContext";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
