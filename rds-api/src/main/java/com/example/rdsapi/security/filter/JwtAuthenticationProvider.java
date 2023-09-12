@@ -1,20 +1,26 @@
 package com.example.rdsapi.security.filter;
 
 
+import com.example.rdsapi.constant.ErrorCode;
+import com.example.rdsapi.exception.GeneralException;
 import com.example.rdsapi.security.domain.UserPrincipal;
 import com.example.rdsapi.util.JwtUtil;
+import com.example.rdscommon.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @RequiredArgsConstructor
+@Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     private final JwtUtil jwtUtil;
+    private final UserAccountRepository userAccountRepository;
 
 
     // 해당 메서드를 통해 jwt 토큰 값을 유저 아이디와 권한을 매핑한 형태의 토큰을 반환한다.
@@ -30,8 +36,16 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         boolean tokenValid = false;
 
 
-        tokenType = jwtUtil.getTokenTypeFromJWT(jwt);
-        tokenValid = jwtUtil.validateToken(jwt);
+
+        try{
+            tokenValid = jwtUtil.validateToken(jwt);
+            tokenType = jwtUtil.getTokenTypeFromJWT(jwt);
+        }catch (GeneralException e){
+            // 토큰의 유효기간이 지났다는 에러코드인 경우
+            if(e.getErrorCode().getCode() == 3004){
+                throw new GeneralException(ErrorCode.ACCESS_TOKEN_EXPIRED);
+            }
+        }
 
 
         String userId = jwtUtil.getUsernameFromJWT(jwt);

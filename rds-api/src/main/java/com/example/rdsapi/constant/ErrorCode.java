@@ -22,20 +22,22 @@ public enum ErrorCode {
     USER_NOT_FOUND(1005, HttpStatus.BAD_REQUEST,"사용자 정보를 찾을 수 없습니다."),
 
 
+    // 회원가입 관련 에러 처리
     NOT_INVALID_ID_OR_PASSWORD(2000,HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호를 확인해 주세요."),
     EMAIL_AUTHENTICATION_CODE_EXPIRE(2004,HttpStatus.BAD_REQUEST, "인증유효시간이 만료되었습니다."),
     EMAIL_AUTHENTICATION_NOT_INVALID(2005,HttpStatus.BAD_REQUEST, "인증코드를 확인해 주세요."),
 
+
+    // 토큰 관련 에러 처리
+    ACCESS_TOKEN_EXPIRED(3000, HttpStatus.UNAUTHORIZED, "엑세스 토큰의 유효기간이 만료되었습니다. 리프레시 토큰을 사용하여 갱신을 시도해주세요."),
+    REFRESH_TOKEN_EXPIRED(3001, HttpStatus.UNAUTHORIZED, "로그인 유효시간이 만료되었습니다. 다시 로그인을 해주세요."),
+    IS_NOT_JWT(3002, HttpStatus.UNAUTHORIZED, "사용자 정보를 확인할 수 없습니다."),
+    TOKEN_EXPIRED(3004, HttpStatus.UNAUTHORIZED, "토큰의 유효기간이 만료되었습니다."),
+    USER_INACTIVE(3005, HttpStatus.UNAUTHORIZED, "비활성화된 사용자입니다."),
+
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
     EMAIL_EXCEPTION(20001, HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 중 오류가 발생하였습니다."),
 
-    IS_NOT_JWT(50000, HttpStatus.UNAUTHORIZED, "Is not Jwt"),
-    USER_INACTIVE(50001, HttpStatus.UNAUTHORIZED, "User inactive error"),
-    USER_BAD_CREDENTIALS(50002,HttpStatus.UNAUTHORIZED,"User bad credentials"),
-    TOKEN_NOT_VALID(50003,HttpStatus.UNAUTHORIZED,"Token not valid"),
-    REFRESH_TOKEN_NOT_VALID(50004,HttpStatus.UNAUTHORIZED,"Refresh token not valid"),
-    NOT_FOUND_SIGNATURE(50005,HttpStatus.UNAUTHORIZED,"Not found signature in Jwt"),
-    IS_TOKEN_DIFFERENT(50006,HttpStatus.UNAUTHORIZED, "The types of tokens are different."),
     ;
 
     private final Integer code;

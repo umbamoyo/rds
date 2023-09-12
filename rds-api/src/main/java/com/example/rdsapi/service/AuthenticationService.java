@@ -3,10 +3,9 @@ package com.example.rdsapi.service;
 import com.example.rdsapi.constant.ErrorCode;
 import com.example.rdsapi.dto.SignInDto;
 import com.example.rdsapi.exception.GeneralException;
+import com.example.rdsapi.security.domain.RefreshToken;
 import com.example.rdsapi.security.domain.UserPrincipal;
 import com.example.rdsapi.util.JwtUtil;
-import com.example.rdsapi.security.domain.RefreshToken;
-import com.example.rdsapi.security.domain.TokenBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -54,6 +53,5 @@ public class AuthenticationService {
             e.printStackTrace();
             throw new GeneralException(ErrorCode.NOT_INVALID_ID_OR_PASSWORD);
         }
-
     }
 }

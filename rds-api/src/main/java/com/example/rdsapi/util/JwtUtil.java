@@ -23,11 +23,14 @@ public class JwtUtil {
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
     private static final String SECRET_KEY = "whoKnowsMyKey?blahblah";
 
-    // developOnly - 6 hours
-    public static long ACCESS_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(60*6).toMillis();
+    // prod : access(6시간), refresh(24주)
+//    public static long ACCESS_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(60*6).toMillis();
+//    public static long REFRESH_TOKEN_EXPIRATION_TIME = 604800000L;
 
-    // 24주
-    public static long REFRESH_TOKEN_EXPIRATION_TIME = 604800000L;
+    // dev : access(1분), refresh(3분)
+    public static long ACCESS_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(1).toMillis();
+    public static long REFRESH_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(3).toMillis();
+
 
     public String generateAccessToken(UserPrincipal userPrincipal) {
         Instant expiryDate = Instant.now().plusMillis(ACCESS_TOKEN_EXPIRATION_TIME);
@@ -75,13 +78,11 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
-        } catch (SignatureException ex) {
-            throw new GeneralException(ErrorCode.NOT_FOUND_SIGNATURE);
-        } catch (MalformedJwtException  | UnsupportedJwtException ex) {
-            throw new GeneralException(ErrorCode.IS_NOT_JWT);
         } catch (ExpiredJwtException ex) {
-            throw new GeneralException(ErrorCode.TOKEN_NOT_VALID);
-        }  catch (Exception e){
+            throw new GeneralException(ErrorCode.TOKEN_EXPIRED);
+        } catch (MalformedJwtException  | UnsupportedJwtException | SignatureException ex) {
+            throw new GeneralException(ErrorCode.IS_NOT_JWT);
+        } catch (Exception e){
             throw new GeneralException(ErrorCode.INTERNAL_ERROR);
         }
         return true;
