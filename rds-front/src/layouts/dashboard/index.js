@@ -53,7 +53,7 @@ function Dashboard() {
   const testHandler = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
 
-    await fetch(`${API_BASE_URL}/api/vi/user/test`, {
+    await fetch(`${API_BASE_URL}/api/v1/user/test`, {
       method: "GET",
       headers: {
         "content-type": "application/json",

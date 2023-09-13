@@ -75,7 +75,7 @@ const AuthContextProvider = (props) => {
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
 
-    await fetch(`${API_BASE_URL}/api/vi/updateToken`, {
+    await fetch(`${API_BASE_URL}/api/v1/updateToken`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
