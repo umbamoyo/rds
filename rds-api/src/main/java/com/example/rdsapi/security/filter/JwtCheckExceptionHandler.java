@@ -36,6 +36,7 @@ public class JwtCheckExceptionHandler extends BasicAuthenticationFilter {
     public void setErrorResponse(ErrorCode errorCode, HttpServletResponse response){
         response.setStatus(errorCode.getHttpStatus().value());
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         ApiErrorResponse apiErrorResponse = ApiErrorResponse.of(false, errorCode);
 
         try{

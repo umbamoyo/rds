@@ -1,18 +1,14 @@
 package com.example.rdsapi.config;
 
-import com.example.rdsapi.security.filter.CustomAccessDeniedHandler;
-import com.example.rdsapi.security.filter.JwtAuthenticationProvider;
-import com.example.rdsapi.security.filter.JwtCheckExceptionHandler;
-import com.example.rdsapi.security.filter.JwtCheckFilter;
-import com.example.rdsapi.security.filter.JwtLoginFilter;
-import com.example.rdsapi.util.JwtUtil;
+import com.example.rdsapi.security.filter.*;
 import com.example.rdsapi.service.UserAccountService;
+import com.example.rdsapi.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,6 +25,8 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
     private final UserAccountService userAccountService;
     private final JwtUtil jwtUtil;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -40,14 +38,23 @@ public class SecurityConfig {
         return http
                 .cors().and()
                 .authorizeRequests(auth -> auth
-                        .mvcMatchers("/api/v1/**").permitAll()
+                        .mvcMatchers(
+                                "/api/v1/user/signUp",
+                                "/api/v1/user/nickNameDuplicateCheck",
+                                "/api/v1/user/userIdDuplicateCheck",
+                                "/api/v1/signIn",
+                                "/api/v1/sendAuthenticationEmailCode",
+                                "/api/v1/checkAuthenticationEmailCode",
+                                "/api/v1/updateToken"
+                        )
+                        .permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterAt(jwtCheckFilter, BasicAuthenticationFilter.class)
                 .addFilterAt(jwtLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtCheckExceptionHandler, JwtCheckFilter.class)
                 .exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler(objectMapper)))
-                .authenticationProvider(new JwtAuthenticationProvider(jwtUtil))
                 .csrf().disable()
                 .build();
     }
@@ -62,12 +69,19 @@ public class SecurityConfig {
         return userAccountService::getUserAccountById;
     }
 
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(
+            HttpSecurity http,
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
+    ) throws Exception {
+        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        return builder
+                .authenticationProvider(jwtAuthenticationProvider)
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder)
+                .and().build();
     }
-
-
-
 }
 

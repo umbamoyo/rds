@@ -5,15 +5,13 @@ import com.example.rdsapi.dto.request.SendAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SignInRequest;
 import com.example.rdsapi.dto.response.SignInResponse;
 import com.example.rdsapi.dto.response.common.ApiDataResponse;
+import com.example.rdsapi.security.domain.TokenBox;
 import com.example.rdsapi.service.AuthenticationService;
 import com.example.rdsapi.service.EmailService;
-import com.example.rdsapi.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -25,7 +23,6 @@ import java.util.List;
  */
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
 
     @PostMapping("/signIn")
@@ -37,18 +34,6 @@ public class AuthenticationController {
         return ApiDataResponse.of(SignInResponse.from(tokenWithNickName));
 
     }
-
-//    @PostMapping("/refresh-token")
-//    public ApiDataResponse<RefreshToken.RefreshTokenRes> refreshJwtToken(
-//            @RequestBody RefreshToken.RefreshTokenReq req
-//    ){
-//        RefreshToken.RefreshTokenRes res = refreshTokenService.refreshAccessToken(
-//                RefreshToken.RefreshTokenDto.fromRefreshTokenReq(req)
-//        );
-//
-//        return ApiDataResponse.of(res);
-//    }
-
 
     @PostMapping("/sendAuthenticationEmailCode")
     public ApiDataResponse<Object> sendAuthenticationEmailCode(
@@ -64,6 +49,25 @@ public class AuthenticationController {
     ){
         emailService.authenticate(request.toDto());
         return ApiDataResponse.emptyWithCustomMessage("Success Email Authentication");
+    }
+
+    @GetMapping("/updateToken")
+    public ApiDataResponse<TokenBox> updateToken(
+            @RequestHeader("ACCESS_TOKEN") String accessToken,
+            @RequestHeader("REFRESH_TOKEN") String refreshToken,
+            HttpServletRequest request
+    ){
+        // 사용자 ip 가져오기
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null) ip = request.getRemoteAddr();
+
+        // os 정보 가져오기
+        String userAgent = request.getHeader("USER-AGENT");
+        String os = authenticationService.getClientOS(userAgent);
+        String browser = authenticationService.getClientBrowser(userAgent);
+
+        TokenBox tokenBox = authenticationService.generateNewTokenPair(accessToken.substring("Bearer ".length()), refreshToken.substring("Bearer ".length()), ip, os, browser);
+        return ApiDataResponse.of(tokenBox);
     }
 
 }
