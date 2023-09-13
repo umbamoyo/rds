@@ -34,13 +34,56 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import MDButton from "components/MDButton";
+import { API_BASE_URL } from "util/host-utils";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
 
+  // 로그인 토큰 정보 얻어오기
+  const getLoginUserInfo = () => {
+    return {
+      accessToken: localStorage.getItem("ACCESS_TOKEN"),
+      refreshToken: localStorage.getItem("REFRESH_TOKEN"),
+      nickName: localStorage.getItem("LOGIN_USERNAME"),
+    };
+  };
+
+  //토큰 유효기간 확인 및 재요청
+  const testHandler = async () => {
+    const { accessToken, refreshToken } = getLoginUserInfo();
+
+    await fetch(`${API_BASE_URL}/api/vi/user/test`, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        ACCESS_TOKEN: "Bearer " + accessToken,
+        REFRESH_TOKEN: "Bearer " + refreshToken,
+      },
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        alert(json.message);
+        if (json.errorCode === 3001 || json.errorCode === 3006) {
+          // logoutHandler();
+          // redirection("/authentication/sign-in");
+          return;
+        }
+        // if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
+        else {
+          // alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
+        }
+      })
+      .catch((err) => {
+        console.log("에러", err);
+        alert("서버와 통신이 원활하지 않습니다.");
+      });
+  };
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      <MDButton onClick={testHandler}>test</MDButton>
       <MDBox py={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>

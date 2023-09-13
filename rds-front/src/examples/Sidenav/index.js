@@ -81,32 +81,41 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const setLoginUserInfo = ({ accessToken, refreshToken }, nickName) => {
     localStorage.setItem("ACCESS_TOKEN", accessToken);
     localStorage.setItem("REFRESH_TOKEN", refreshToken);
-    localStorage.setItem("LOGIN_USERNAME", nickName);
+    if (nickName) {
+      localStorage.setItem("LOGIN_USERNAME", nickName);
+    }
   };
 
   //토큰 유효기간 확인 및 재요청
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
 
-    const res = await fetch(`${API_BASE_URL}/api/vi/updateToken`, {
+    await fetch(`${API_BASE_URL}/api/vi/updateToken`, {
       method: "GET",
       headers: {
         "content-type": "application/json",
-        ACCESS_TOKEN: accessToken,
-        REFRESH_TOKEN: refreshToken,
+        ACCESS_TOKEN: "Bearer " + accessToken,
+        REFRESH_TOKEN: "Bearer " + refreshToken,
       },
-    }).catch((err) => {
-      console.log("에러", err);
-    });
-
-    if (res.status !== 200) {
-      alert(await res.json().message);
-      logoutHandler();
-    }
-    if (res.status === 200) {
-      const json = await res.json();
-      setLoginUserInfo(json.data.tokenBox);
-    }
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        if (json.errorCode === 3001 || json.errorCode === 3006) {
+          alert(json.message);
+          logoutHandler();
+          redirection("/authentication/sign-in");
+          return;
+        }
+        if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
+        else {
+          alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
+        }
+      })
+      .catch((err) => {
+        console.log("에러", err);
+        alert("서버와 통신이 원활하지 않습니다.");
+      });
   };
 
   //컴포넌트가 렌더링 될 때 localStorage에서 로그인 정보를 가지고 와서 상태를 설정.
