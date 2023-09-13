@@ -8,6 +8,7 @@ import com.example.rdsapi.security.domain.UserPrincipal;
 import com.example.rdsapi.util.JwtUtil;
 import com.example.rdsapi.service.UserAccountService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -53,15 +54,16 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 
             return getAuthenticationManager().authenticate(token);
         }else{
+            Claims parsedToken = null;
             try{
-                jwtUtil.validateToken(refreshToken);
+                parsedToken = jwtUtil.parseToken(refreshToken);
             }catch (GeneralException e){
                 // 토큰의 유효기간이 지났다는 에러코드인 경우
                 if(e.getErrorCode().getCode() == 3004){
                     throw new GeneralException(ErrorCode.REFRESH_TOKEN_EXPIRED);
                 }
             }
-            UserPrincipal principal = userAccountService.getUserAccountById(jwtUtil.getUsernameFromJWT(refreshToken));
+            UserPrincipal principal = userAccountService.getUserAccountById(jwtUtil.getUserIdFromJWT(parsedToken));
             return new UsernamePasswordAuthenticationToken(
                     principal, principal.getAuthorities()
             );
@@ -80,7 +82,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
     {
         UserPrincipal user = (UserPrincipal) authResult.getPrincipal();
         response.setHeader("auth_token", jwtUtil.generateAccessToken(user));
-        response.setHeader("refresh_token", jwtUtil.generateRefreshToken(user,"sample"));
+        response.setHeader("refresh_token", jwtUtil.generateRefreshToken(user,"sample",null));
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         response.getOutputStream().write(objectMapper.writeValueAsBytes(user));
     }

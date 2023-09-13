@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/api/v1/user/userIdDuplicateCheck",
                                 "/api/v1/signIn",
                                 "/api/v1/sendAuthenticationEmailCode",
-                                "/api/v1/checkAuthenticationEmailCode"
+                                "/api/v1/checkAuthenticationEmailCode",
+                                "/api/v1/updateToken"
                         )
                         .permitAll()
                         .anyRequest().authenticated()

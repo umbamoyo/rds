@@ -34,6 +34,7 @@ public enum ErrorCode {
     IS_NOT_JWT(3002, HttpStatus.UNAUTHORIZED, "사용자 정보를 확인할 수 없습니다."),
     TOKEN_EXPIRED(3004, HttpStatus.UNAUTHORIZED, "토큰의 유효기간이 만료되었습니다."),
     USER_INACTIVE(3005, HttpStatus.UNAUTHORIZED, "비활성화된 사용자입니다."),
+    NOT_MATCH_TOKEN_PAIR(3006, HttpStatus.UNAUTHORIZED, "사용자 정보가 일치하지 않습니다."),
 
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "Internal error"),
     EMAIL_EXCEPTION(20001, HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 중 오류가 발생하였습니다."),

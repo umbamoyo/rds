@@ -21,6 +21,7 @@ public class JwtUtil {
 
     private static final String AUTHORITIES_CLAIM = "authorities";
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String NICKNAME_CLAIM = "nickname";
     private static final String SECRET_KEY = "whoKnowsMyKey?blahblah";
 
     // prod : access(6시간), refresh(24주)
@@ -42,6 +43,7 @@ public class JwtUtil {
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .claim(AUTHORITIES_CLAIM, authorities)
                 .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS_TOKEN.toString())
+                .claim(NICKNAME_CLAIM, userPrincipal.nickname())
                 .compact();
 
 
@@ -54,76 +56,72 @@ public class JwtUtil {
                 .collect(Collectors.joining(","));
     }
 
-    public String generateRefreshToken(UserPrincipal userPrincipal, String jti) {
-        Instant expiryDate = Instant.now().plusMillis(REFRESH_TOKEN_EXPIRATION_TIME);
+    public String generateRefreshToken(UserPrincipal userPrincipal, String jti, Date haveExpiredDate) {
+        Date expireDate = haveExpiredDate == null ? Date.from(Instant.now().plusMillis(REFRESH_TOKEN_EXPIRATION_TIME)) : haveExpiredDate;
         return Jwts.builder()
                 .setSubject(userPrincipal.userId())
                 .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(expiryDate))
+                .setExpiration(expireDate)
                 .setId(jti)
                 .claim(TOKEN_TYPE_CLAIM, TokenType.REFRESH_TOKEN.toString())
+                .claim(NICKNAME_CLAIM, userPrincipal.nickname())
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
 
-    public Date getTokenExpiryFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getExpiration();
+    // 토큰 만료 일자를 반환
+    public Date getTokenExpiryFromJWT(Claims parsedToken) {
+        return parsedToken.getExpiration();
     }
 
-    public boolean validateToken(String token) {
+    // JWT 파싱
+    public Claims parseToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
-        } catch (ExpiredJwtException ex) {
+            return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        } catch (ExpiredJwtException e) {
             throw new GeneralException(ErrorCode.TOKEN_EXPIRED);
         } catch (MalformedJwtException  | UnsupportedJwtException | SignatureException ex) {
             throw new GeneralException(ErrorCode.IS_NOT_JWT);
         } catch (Exception e){
             throw new GeneralException(ErrorCode.INTERNAL_ERROR);
         }
-        return true;
     }
 
-    public String getTokenTypeFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return (String) claims.get(TOKEN_TYPE_CLAIM);
+    // 만료된 accessToken이 유효한 값을 가지면서 재갱신 요쳥을 시도하는지 판단하기 위함
+    public Claims parseExpiredToken(String token){
+        try{
+            return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        }catch (ExpiredJwtException e){
+            return e.getClaims();
+        }catch (MalformedJwtException  | UnsupportedJwtException | SignatureException ex) {
+            ex.printStackTrace();
+            throw new GeneralException(ErrorCode.IS_NOT_JWT);
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR);
+        }
     }
 
-    public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
 
-        return claims.getSubject();
+    // 토큰 타입을 반환 : accessToken or refreshToken
+    public String getTokenTypeFromJWT(Claims parsedToken) {
+        return (String) parsedToken.get(TOKEN_TYPE_CLAIM);
     }
 
-    // authenticationService.authenticate(req) 의 return 타입을 바꾸긴 애매해서
-    // 여기에 추가합니다..... 좋은 의견있으시면 의견부탁드립니다.
-    public static Long getUserId(String token){
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
+    // 사용자 닉네임을 반환
+    public String getNickNameFromToken(Claims parsedToken){
+        return (String) parsedToken.get(NICKNAME_CLAIM);
+    }
 
-        return Long.valueOf(claims.getSubject());
-    } 
+    // 토큰에서 유저 아이디를 반환
+    public String getUserIdFromJWT(Claims parsedToken) {
+        return parsedToken.getSubject();
+    }
 
-    public List<GrantedAuthority> getAuthoritiesFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
 
-        return Arrays.stream(claims.get(AUTHORITIES_CLAIM).toString().split(","))
+    // 사용자 권한들을 반환
+    public List<GrantedAuthority> getAuthoritiesFromJWT(Claims parsedToken) {
+        return Arrays.stream(parsedToken.get(AUTHORITIES_CLAIM).toString().split(","))
                 .map( role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toList());
     }

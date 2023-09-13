@@ -33,6 +33,16 @@ public record UserPrincipal(
         );
     }
 
+    public static UserPrincipal of(String username, String password, String nickname, String memo, Collection<? extends GrantedAuthority> authorities) {
+        return new UserPrincipal(
+                username,
+                password,
+                nickname,
+                memo,
+                authorities
+        );
+    }
+
     public static UserPrincipal of(String userId, Set<RoleType> roleTypes){
         return UserPrincipal.of(
                 userId,
@@ -44,7 +54,7 @@ public record UserPrincipal(
     }
 
 
-    public static UserPrincipal of(String userId, List<GrantedAuthority> authorities){
+    public static UserPrincipal of(String userId, Collection<? extends GrantedAuthority> authorities){
         return new UserPrincipal(
                 userId,
                 null,

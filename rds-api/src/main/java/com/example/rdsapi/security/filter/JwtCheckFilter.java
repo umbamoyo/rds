@@ -28,7 +28,9 @@ public class JwtCheckFilter extends BasicAuthenticationFilter {
             throws ServletException, IOException {
 
         String bearer = request.getHeader("ACCESS_TOKEN");
-        if (bearer == null || !bearer.startsWith("Bearer ")) {
+
+        // 토큰이 존재하지 않거나 토큰 갱신을 요청하는 경우
+        if (bearer == null || !bearer.startsWith("Bearer ") || request.getRequestURI().contains("/api/v1/updateToken")) {
             chain.doFilter(request, response);
             return;
         }
