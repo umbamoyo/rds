@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,9 +29,10 @@ public class AuthenticationController {
 
     @PostMapping("/signIn")
     public ApiDataResponse<SignInResponse> login(
-            @RequestBody SignInRequest request
-            ){
-        List<String> tokenWithNickName = authenticationService.authenticate(request.toDto());
+            @RequestBody SignInRequest signInRequest,
+            HttpServletRequest request
+    ){
+        List<String> tokenWithNickName = authenticationService.authenticate(signInRequest.toDto(), getUserEnvInfo(request));
 
         return ApiDataResponse.of(SignInResponse.from(tokenWithNickName));
 
@@ -57,17 +60,104 @@ public class AuthenticationController {
             @RequestHeader("REFRESH_TOKEN") String refreshToken,
             HttpServletRequest request
     ){
-        // 사용자 ip 가져오기
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null) ip = request.getRemoteAddr();
+        // client 접속 정보 가져오기
+        Map<String, String> clientInfo = getUserEnvInfo(request);
 
-        // os 정보 가져오기
-        String userAgent = request.getHeader("USER-AGENT");
-        String os = authenticationService.getClientOS(userAgent);
-        String browser = authenticationService.getClientBrowser(userAgent);
-
-        TokenBox tokenBox = authenticationService.generateNewTokenPair(accessToken.substring("Bearer ".length()), refreshToken.substring("Bearer ".length()), ip, os, browser);
+        // 토큰 갱신
+        TokenBox tokenBox = authenticationService.generateNewTokenPair(accessToken.substring("Bearer ".length()), refreshToken.substring("Bearer ".length()), clientInfo);
         return ApiDataResponse.of(tokenBox);
+    }
+
+    // 사용자의 ip, os, browser 정보를 가져옴
+    private Map<String, String> getUserEnvInfo(HttpServletRequest request){
+        String userAgent = request.getHeader("USER-AGENT");
+        String os = getClientOS(userAgent);
+        String browser = getClientBrowser(userAgent);
+        String ip = getClientIp(request);
+
+        Map<String, String> info = new HashMap<>();
+        info.put("os", os);
+        info.put("browser", browser);
+        info.put("ip", ip);
+
+        return info;
+    }
+
+    private String getClientIp(HttpServletRequest request){
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null)
+            ip = request.getRemoteAddr();
+        return ip;
+    }
+
+    private String getClientOS(String userAgent) {
+        String os = "";
+        userAgent = userAgent.toLowerCase();
+
+        if(userAgent.contains("windows nt 11.0")){
+            os = "Windows11";
+        }else if (userAgent.contains("windows nt 10.0")) {
+            os = "Windows10";
+        }else if (userAgent.contains("windows nt 6.1")) {
+            os = "Windows7";
+        }else if (userAgent.contains("windows nt 6.2")  || userAgent.contains("windows nt 6.3")  ) {
+            os = "Windows8";
+        }else if (userAgent.contains("windows nt 6.0")) {
+            os = "WindowsVista";
+        }else if (userAgent.contains("windows nt 5.1")) {
+            os = "WindowsXP";
+        }else if (userAgent.contains("windows nt 5.0")) {
+            os = "Windows2000";
+        }else if (userAgent.contains("windows nt 4.0")) {
+            os = "WindowsNT";
+        }else if (userAgent.contains("windows 98")) {
+            os = "Windows98";
+        }else if (userAgent.contains("windows 95")) {
+            os = "Windows95";
+        }else if (userAgent.contains("iphone")) {
+            os = "iPhone";
+        }else if (userAgent.contains("ipad")) {
+            os = "iPad";
+        }else if (userAgent.contains("android")) {
+            os = "android";
+        }else if (userAgent.contains("mac")) {
+            os = "mac";
+        }else if (userAgent.contains("linux")) {
+            os = "Linux";
+        }else{
+            os = "Other";
+        }
+        return os;
+    }
+
+    private String getClientBrowser(String userAgent) {
+        String browser = "";
+
+        if (userAgent.contains("Trident/7.0")) {
+            browser = "ie11";
+        }
+        else if (userAgent.contains("MSIE 10")) {
+            browser = "ie10";
+        }
+        else if (userAgent.contains("MSIE 9")) {
+            browser = "ie9";
+        }
+        else if (userAgent.contains("MSIE 8")) {
+            browser = "ie8";
+        }
+        else if (userAgent.contains("Chrome/")) {
+            browser = "Chrome";
+        }
+        else if (userAgent.contains("Chrome/") && userAgent.contains("Safari/")) {
+            browser = "Safari";
+        }
+        else if (userAgent.contains("Firefox/")) {
+            browser = "Firefox";
+        }
+        else {
+            browser ="Other";
+        }
+        return browser;
     }
 
 }

@@ -1,13 +1,12 @@
 package com.example.rdsapi.security.domain;
 
-import com.example.rdsapi.domain.UserAccountDto;
+import com.example.rdsapi.dto.UserAccountDto;
 import com.example.rdscommon.domain.RoleType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

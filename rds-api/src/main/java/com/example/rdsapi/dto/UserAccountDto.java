@@ -1,4 +1,4 @@
-package com.example.rdsapi.domain;
+package com.example.rdsapi.dto;
 
 import com.example.rdscommon.domain.RoleType;
 import com.example.rdscommon.domain.UserAccount;

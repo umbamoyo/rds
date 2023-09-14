@@ -6,6 +6,8 @@ import com.example.rdsapi.exception.GeneralException;
 import com.example.rdsapi.security.domain.TokenBox;
 import com.example.rdsapi.security.domain.UserPrincipal;
 import com.example.rdsapi.util.JwtUtil;
+import com.example.rdscommon.domain.RefreshToken;
+import com.example.rdscommon.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,8 +17,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -25,17 +29,40 @@ import java.util.UUID;
 public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
 
     // 로그인
-    public List<String> authenticate(SignInDto dto) {
+    @Transactional
+    public List<String> authenticate(SignInDto dto, Map<String, String> clientInfo) {
         Authentication auth = authenticate(dto.userId(), dto.password());
 
         final UserDetails userDetails = (UserDetails) auth.getPrincipal();
         UserPrincipal userPrincipal = (UserPrincipal) userDetails;
 
-        String refreshToken = jwtUtil.generateRefreshToken(userPrincipal, UUID.randomUUID().toString(), null);
+        String jtl = makeJti();
+
+        String refreshToken = jwtUtil.generateRefreshToken(userPrincipal, jtl, null);
         String accessToken  = jwtUtil.generateAccessToken(userPrincipal);
+
+        refreshTokenRepository.deleteByUserIdAndIpAndOsAndBrowser(
+                userPrincipal.userId(),
+                clientInfo.get("ip"),
+                clientInfo.get("os"),
+                clientInfo.get("browser")
+        );
+
+        // Refresh 토큰 생성 정보를 DB에 저장
+        refreshTokenRepository.save(
+            RefreshToken.of(
+                    userPrincipal.userId(),
+                    refreshToken,
+                    jtl,
+                    clientInfo.get("ip"),
+                    clientInfo.get("os"),
+                    clientInfo.get("browser")
+            )
+        );
 
         return List.of(accessToken, refreshToken, userPrincipal.nickname());
     }
@@ -56,18 +83,35 @@ public class AuthenticationService {
     }
 
     // refreshToken을 이용한 token-pair 갱신
-    public TokenBox generateNewTokenPair(String accessToken, String refreshToken, String ip, String os, String browser){
+    @Transactional
+    public TokenBox generateNewTokenPair(String accessToken, String refreshToken, Map<String, String> clientInfo){
         Claims parsedRefreshToken = null;
         Claims parsedAccessToken = null;
+        RefreshToken selectRefreshTokenFromDB = null;
 
-        // refreshToken의 유효기간이 만료 검사
         try{
+            // refreshToken의 유효기간이 만료 검사
             parsedRefreshToken = jwtUtil.parseToken(refreshToken);
+
+            // DB를 조회하여 유효한 사용자인지 판별
+            String beforeJti = parsedRefreshToken.getId();
+            selectRefreshTokenFromDB = refreshTokenRepository.findByJti(beforeJti)
+                    .orElseThrow(() -> new GeneralException(ErrorCode.ACCESS_DENIED));
+
+            if(
+                    !selectRefreshTokenFromDB.getRefreshToken().equals(refreshToken) ||
+                    !selectRefreshTokenFromDB.getIp().equals(clientInfo.get("ip")) ||
+                    !selectRefreshTokenFromDB.getBrowser().equals(clientInfo.get("browser")) ||
+                    !selectRefreshTokenFromDB.getOs().equals(clientInfo.get("os"))
+            ){
+                throw new GeneralException(ErrorCode.ACCESS_DENIED);
+            }
         }catch (GeneralException e){
             if(e.getErrorCode() == ErrorCode.TOKEN_EXPIRED){
                 throw new GeneralException(ErrorCode.REFRESH_TOKEN_EXPIRED);
             }
         }
+
 
         // 유효기간이 만료된 accessToken 파싱
         parsedAccessToken = jwtUtil.parseExpiredToken(accessToken);
@@ -93,80 +137,25 @@ public class AuthenticationService {
                 jwtUtil.getAuthoritiesFromJWT(parsedAccessToken)
         );
 
+        String afterJti = makeJti();
         String newAccessToken = jwtUtil.generateAccessToken(userPrincipal);
-        String newRefreshToken = jwtUtil.generateRefreshToken(userPrincipal, UUID.randomUUID().toString(), jwtUtil.getTokenExpiryFromJWT(parsedRefreshToken));
+        String newRefreshToken = jwtUtil.generateRefreshToken(userPrincipal, afterJti , jwtUtil.getTokenExpiryFromJWT(parsedRefreshToken));
+
+        // DB에 갱신된 RefreshToken 정보 수정
+        selectRefreshTokenFromDB.setJti(afterJti);
+        selectRefreshTokenFromDB.setRefreshToken(newRefreshToken);
+        refreshTokenRepository.save(selectRefreshTokenFromDB);
 
         return new TokenBox(newAccessToken, newRefreshToken);
     }
 
-    public String getClientOS(String userAgent) {
-        String os = "";
-        userAgent = userAgent.toLowerCase();
-        
-        if(userAgent.contains("windows nt 11.0")){
-            os = "Windows11";
-        }else if (userAgent.contains("windows nt 10.0")) {
-            os = "Windows10";
-        }else if (userAgent.contains("windows nt 6.1")) {
-            os = "Windows7";
-        }else if (userAgent.contains("windows nt 6.2")  || userAgent.contains("windows nt 6.3")  ) {
-            os = "Windows8";
-        }else if (userAgent.contains("windows nt 6.0")) {
-            os = "WindowsVista";
-        }else if (userAgent.contains("windows nt 5.1")) {
-            os = "WindowsXP";
-        }else if (userAgent.contains("windows nt 5.0")) {
-            os = "Windows2000";
-        }else if (userAgent.contains("windows nt 4.0")) {
-            os = "WindowsNT";
-        }else if (userAgent.contains("windows 98")) {
-            os = "Windows98";
-        }else if (userAgent.contains("windows 95")) {
-            os = "Windows95";
-        }else if (userAgent.contains("iphone")) {
-            os = "iPhone";
-        }else if (userAgent.contains("ipad")) {
-            os = "iPad";
-        }else if (userAgent.contains("android")) {
-            os = "android";
-        }else if (userAgent.contains("mac")) {
-            os = "mac";
-        }else if (userAgent.contains("linux")) {
-            os = "Linux";
-        }else{
-            os = "Other";
-        }
-        return os;
-    }
 
-    public String getClientBrowser(String userAgent) {
-        String browser = "";
-
-        if (userAgent.contains("Trident/7.0")) {
-            browser = "ie11";
+    private String makeJti(){
+        String jtl = UUID.randomUUID().toString();
+        while (refreshTokenRepository.existsByJti(jtl)){
+            jtl = UUID.randomUUID().toString();
         }
-        else if (userAgent.contains("MSIE 10")) {
-            browser = "ie10";
-        }
-        else if (userAgent.contains("MSIE 9")) {
-            browser = "ie9";
-        }
-        else if (userAgent.contains("MSIE 8")) {
-            browser = "ie8";
-        }
-        else if (userAgent.contains("Chrome/")) {
-            browser = "Chrome";
-        }
-        else if (userAgent.contains("Chrome/") && userAgent.contains("Safari/")) {
-            browser = "Safari";
-        }
-        else if (userAgent.contains("Firefox/")) {
-            browser = "Firefox";
-        }
-        else {
-            browser ="Other";
-        }
-        return browser;
+        return jtl;
     }
 
 
