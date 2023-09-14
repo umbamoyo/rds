@@ -35,6 +35,23 @@ const AuthContextProvider = (props) => {
     setIsLoggedIn(false);
   };
 
+  // ip 주소 정보 얻기
+  const getIp = async () => {
+    let ip;
+    await fetch("https://geolocation-db.com/json/", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        ip = json.IPv4;
+      });
+    // os정보얻기
+    const userAgent = window.navigator.userAgent;
+    console.log(userAgent);
+    return { ip, userAgent };
+  };
+
   //로그인 핸들러
   const loginHandler = ({ accessToken, refreshToken }, nickName, rememberMe) => {
     // 자동로그인
@@ -74,6 +91,7 @@ const AuthContextProvider = (props) => {
   //토큰 유효기간 확인 및 재요청
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
+    const { ip, userAgent } = getIp();
 
     await fetch(`${API_BASE_URL}/api/v1/updateToken`, {
       method: "GET",
@@ -81,6 +99,8 @@ const AuthContextProvider = (props) => {
         "content-type": "application/json",
         ACCESS_TOKEN: "Bearer " + accessToken,
         REFRESH_TOKEN: "Bearer " + refreshToken,
+        "USER-AGENT": userAgent,
+        "X-Forwarded-For": ip,
       },
     })
       .then((res) => res.json())

@@ -77,6 +77,24 @@ function Basic() {
     setPassword(e.target.value);
   };
 
+  // ip 주소 정보 얻기
+  const getIp = async () => {
+    let ip;
+    await fetch("https://geolocation-db.com/json/", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        ip = json.IPv4;
+      });
+    // os정보얻기
+    const userAgent = window.navigator.userAgent;
+    console.log(userAgent);
+    return { ip, userAgent };
+  };
+
+  // 로그인 요청
   const loginHandler = () => {
     if (!userId) {
       alert("이메일을 입력하세요");
@@ -86,9 +104,14 @@ function Basic() {
       alert("비밀번호를 입력하세요");
       return;
     }
+    const { ip, userAgent } = getIp();
     fetch(`${API_BASE_URL}/api/v1/signIn`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "USER-AGENT": userAgent,
+        "X-Forwarded-For": ip,
+      },
       body: JSON.stringify({ userId, password }),
     })
       .then((res) => {

@@ -36,9 +36,27 @@ import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import MDButton from "components/MDButton";
 import { API_BASE_URL } from "util/host-utils";
+import { useState } from "react";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+
+  // ip 주소 정보 얻기
+  const getIp = async () => {
+    let ip;
+    await fetch("https://geolocation-db.com/json/", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        ip = json.IPv4;
+      });
+    // os정보얻기
+    const userAgent = window.navigator.userAgent;
+    console.log(userAgent);
+    return { ip, userAgent };
+  };
 
   // 로그인 토큰 정보 얻어오기
   const getLoginUserInfo = () => {
@@ -49,7 +67,16 @@ function Dashboard() {
     };
   };
 
-  //토큰 유효기간 확인 및 재요청
+  //토큰 및 로그인 유저 데이터를 브라우저에 저장하는 함수
+  const setLoginUserInfo = ({ accessToken, refreshToken }, nickName) => {
+    localStorage.setItem("ACCESS_TOKEN", accessToken);
+    localStorage.setItem("REFRESH_TOKEN", refreshToken);
+    if (nickName) {
+      localStorage.setItem("LOGIN_USERNAME", nickName);
+    }
+  };
+
+  //토큰 인증 테스트
   const testHandler = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
 
@@ -65,14 +92,51 @@ function Dashboard() {
       .then((json) => {
         console.log(json);
         alert(json.message);
-        if (json.errorCode === 3001 || json.errorCode === 3006) {
-          // logoutHandler();
-          // redirection("/authentication/sign-in");
+        if (json.errorCode === 3000) {
+          updateToken();
+          return;
+        }
+        if (json.errorCode === 3002) {
+          redirection("/authentication/sign-in");
           return;
         }
         // if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
         else {
-          // alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
+          alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
+        }
+      })
+      .catch((err) => {
+        console.log("에러", err);
+        alert("서버와 통신이 원활하지 않습니다.");
+      });
+  };
+
+  //토큰 유효기간 확인 및 재요청
+  const updateToken = async () => {
+    const { accessToken, refreshToken } = getLoginUserInfo();
+    const { ip, userAgent } = getIp();
+    await fetch(`${API_BASE_URL}/api/v1/updateToken`, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        ACCESS_TOKEN: "Bearer " + accessToken,
+        REFRESH_TOKEN: "Bearer " + refreshToken,
+        "USER-AGENT": userAgent,
+        "X-Forwarded-For": ip,
+      },
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        alert(json.message);
+        if (json.errorCode === 3001 || json.errorCode === 3006) {
+          logoutHandler();
+          redirection("/authentication/sign-in");
+          return;
+        }
+        if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
+        else {
+          alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
         }
       })
       .catch((err) => {
@@ -84,6 +148,7 @@ function Dashboard() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDButton onClick={testHandler}>test</MDButton>
+      <MDButton onClick={getIp}>test2</MDButton>
       <MDBox py={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
