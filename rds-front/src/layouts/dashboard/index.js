@@ -37,9 +37,11 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import MDButton from "components/MDButton";
 import { API_BASE_URL } from "util/host-utils";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom/dist";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const redirection = useNavigate();
 
   // ip 주소 정보 얻기
   const getIp = async () => {
@@ -76,6 +78,10 @@ function Dashboard() {
     }
   };
 
+  const logoutHandler = () => {
+    localStorage.clear();
+  };
+
   //토큰 인증 테스트
   const testHandler = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
@@ -100,7 +106,7 @@ function Dashboard() {
           redirection("/authentication/sign-in");
           return;
         }
-        // if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
+        if (json.errorCode === 0) return;
         else {
           alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
         }
@@ -114,7 +120,7 @@ function Dashboard() {
   //토큰 유효기간 확인 및 재요청
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
-    const { ip, userAgent } = getIp();
+    const { ip, userAgent } = await getIp();
     await fetch(`${API_BASE_URL}/api/v1/updateToken`, {
       method: "GET",
       headers: {
@@ -134,8 +140,10 @@ function Dashboard() {
           redirection("/authentication/sign-in");
           return;
         }
-        if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
-        else {
+        if (json.errorCode === 0) {
+          setLoginUserInfo(json.data.tokenBox);
+          return;
+        } else {
           alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
         }
       })
