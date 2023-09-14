@@ -4,6 +4,7 @@ import com.example.rdsapi.dto.request.CheckAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SendAuthenticationEmailCodeRequest;
 import com.example.rdsapi.dto.request.SignInRequest;
 import com.example.rdsapi.dto.response.SignInResponse;
+import com.example.rdsapi.dto.response.UpdateTokenResponse;
 import com.example.rdsapi.dto.response.common.ApiDataResponse;
 import com.example.rdsapi.security.domain.TokenBox;
 import com.example.rdsapi.service.AuthenticationService;
@@ -55,7 +56,7 @@ public class AuthenticationController {
     }
 
     @GetMapping("/updateToken")
-    public ApiDataResponse<TokenBox> updateToken(
+    public ApiDataResponse<UpdateTokenResponse> updateToken(
             @RequestHeader("ACCESS_TOKEN") String accessToken,
             @RequestHeader("REFRESH_TOKEN") String refreshToken,
             HttpServletRequest request
@@ -65,7 +66,7 @@ public class AuthenticationController {
 
         // 토큰 갱신
         TokenBox tokenBox = authenticationService.generateNewTokenPair(accessToken.substring("Bearer ".length()), refreshToken.substring("Bearer ".length()), clientInfo);
-        return ApiDataResponse.of(tokenBox);
+        return ApiDataResponse.of(UpdateTokenResponse.from(tokenBox));
     }
 
     // 사용자의 ip, os, browser 정보를 가져옴
