@@ -85,17 +85,17 @@ function Basic() {
     })
       .then((res) => res.json())
       .then((json) => {
-        console.log(json);
         ip = json.IPv4;
       });
     // os정보얻기
     const userAgent = window.navigator.userAgent;
     console.log(userAgent);
+    console.log(ip);
     return { ip, userAgent };
   };
 
   // 로그인 요청
-  const loginHandler = () => {
+  const loginHandler = async () => {
     if (!userId) {
       alert("이메일을 입력하세요");
       return;
@@ -104,8 +104,9 @@ function Basic() {
       alert("비밀번호를 입력하세요");
       return;
     }
-    const { ip, userAgent } = getIp();
-    fetch(`${API_BASE_URL}/api/v1/signIn`, {
+    const { ip, userAgent } = await getIp();
+    console.log("ip " + ip);
+    await fetch(`${API_BASE_URL}/api/v1/signIn`, {
       method: "POST",
       headers: {
         "content-type": "application/json",

@@ -88,11 +88,45 @@ const AuthContextProvider = (props) => {
     };
   };
 
+  //토큰 인증 테스트
+  const testHandler = async () => {
+    const { accessToken, refreshToken } = getLoginUserInfo();
+
+    await fetch(`${API_BASE_URL}/api/v1/user/test`, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        ACCESS_TOKEN: "Bearer " + accessToken,
+        REFRESH_TOKEN: "Bearer " + refreshToken,
+      },
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json);
+        alert(json.message);
+        if (json.errorCode === 3000) {
+          updateToken();
+          return;
+        }
+        if (json.errorCode === 3002) {
+          redirection("/authentication/sign-in");
+          return;
+        }
+        if (json.errorCode === 0) return;
+        else {
+          alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
+        }
+      })
+      .catch((err) => {
+        console.log("에러", err);
+        alert("서버와 통신이 원활하지 않습니다.");
+      });
+  };
+
   //토큰 유효기간 확인 및 재요청
   const updateToken = async () => {
     const { accessToken, refreshToken } = getLoginUserInfo();
-    const { ip, userAgent } = getIp();
-
+    const { ip, userAgent } = await getIp();
     await fetch(`${API_BASE_URL}/api/v1/updateToken`, {
       method: "GET",
       headers: {
@@ -112,8 +146,10 @@ const AuthContextProvider = (props) => {
           redirection("/authentication/sign-in");
           return;
         }
-        if (json.errorCode === 0) setLoginUserInfo(json.data.tokenBox);
-        else {
+        if (json.errorCode === 0) {
+          setLoginUserInfo(json.data.tokenBox);
+          return;
+        } else {
           alert("알수 없는 오류가 발생하였습니다. 관리자에게 문의하세요");
         }
       })
