@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "./host-utils";
 
 const AuthContext = React.createContext({
   isLoggedIn: false, //로그인 했는지의 여부 추적
@@ -8,9 +9,11 @@ const AuthContext = React.createContext({
   onLogout: () => {}, //더미 함수를 넣으면 자동완성 시 편함.
   onLogin: () => {},
   setUserInfo: () => {},
+  getUserInfo: () => {},
+  tokenUpdate: () => {},
 });
 
-const AuthContextProvider = (props) => {
+export const AuthContextProvider = (props) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
 
@@ -27,12 +30,17 @@ const AuthContextProvider = (props) => {
       setUserName(localStorage.getItem("LOGIN_USERNAME"));
       updateToken();
     }
+    // 자동로그인 체크 안할시
+    if (!localStorage.getItem("autoLogin")) {
+      logoutHandler();
+    }
   }, []);
 
   //로그아웃 핸들러
   const logoutHandler = () => {
-    localStorage.clear();
     setIsLoggedIn(false);
+    localStorage.clear();
+    redirection("/authentication/sign-in");
   };
 
   // ip 주소 정보 얻기
@@ -66,8 +74,8 @@ const AuthContextProvider = (props) => {
     localStorage.setItem("ACCESS_TOKEN", accessToken);
     localStorage.setItem("REFRESH_TOKEN", refreshToken);
     localStorage.setItem("LOGIN_USERNAME", nickName);
-    // setIsLoggedIn(true);
-    // setUserName(nickName);
+    setIsLoggedIn(true);
+    setUserName(nickName);
   };
 
   //토큰 및 로그인 유저 데이터를 브라우저에 저장하는 함수
@@ -109,7 +117,7 @@ const AuthContextProvider = (props) => {
           return;
         }
         if (json.errorCode === 3002) {
-          redirection("/authentication/sign-in");
+          logoutHandler();
           return;
         }
         if (json.errorCode === 0) return;
@@ -143,7 +151,6 @@ const AuthContextProvider = (props) => {
         alert(json.message);
         if (json.errorCode === 3001 || json.errorCode === 3006) {
           logoutHandler();
-          redirection("/authentication/sign-in");
           return;
         }
         if (json.errorCode === 0) {
@@ -167,6 +174,8 @@ const AuthContextProvider = (props) => {
         onLogout: logoutHandler,
         onLogin: loginHandler,
         setUserInfo: setLoginUserInfo,
+        getUserInfo: getLoginUserInfo,
+        tokenUpdate: updateToken,
       }}
     >
       {props.children}

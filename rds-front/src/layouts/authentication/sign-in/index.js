@@ -135,20 +135,13 @@ function Basic() {
         console.log(json);
         const { tokenBox, nickName } = json.data;
         alert("로그인 성공했습니다.");
-        //로그인 핸들러
-        const loginHandler = ({ accessToken, refreshToken }, nickName, rememberMe) => {
-          // 자동로그인
-          if (rememberMe) {
-            localStorage.setItem("autoLogin", "1");
-          } else {
-            localStorage.removeItem("autoLogin");
-          }
-          localStorage.setItem("ACCESS_TOKEN", accessToken);
-          localStorage.setItem("REFRESH_TOKEN", refreshToken);
-          localStorage.setItem("LOGIN_USERNAME", nickName);
-        };
-        loginHandler(tokenBox, nickName, rememberMe);
+        // localStorage.setItem("ACCESS_TOKEN", accessToken);
+        // localStorage.setItem("REFRESH_TOKEN", refreshToken);
+        // localStorage.setItem("LOGIN_USERNAME", nickName);
+        // 전역함수로 변경
+        onLogin(tokenBox, nickName, rememberMe);
         redirection("/");
+        return;
       })
       .catch((err) => {
         console.error("에러 ", err);

@@ -23,6 +23,8 @@ import { createContext, useContext, useReducer, useMemo } from "react";
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
 
+import { AuthContextProvider } from "../util/AuthContext";
+
 // Material Dashboard 2 React main context
 const MaterialUI = createContext();
 
@@ -87,7 +89,11 @@ function MaterialUIControllerProvider({ children }) {
 
   const value = useMemo(() => [controller, dispatch], [controller, dispatch]);
 
-  return <MaterialUI.Provider value={value}>{children}</MaterialUI.Provider>;
+  return (
+    <AuthContextProvider>
+      <MaterialUI.Provider value={value}>{children}</MaterialUI.Provider>
+    </AuthContextProvider>
+  );
 }
 
 // Material Dashboard 2 React custom hook for using context
