@@ -12,7 +12,6 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-
 import { useContext, useState, useEffect } from "react";
 
 // react-router-dom components
@@ -45,6 +44,8 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import AuthContext from "util/AuthContext";
 import CustomSnackBar from "components/MDSnackbar/CustomSnackbar";
 import { API_BASE_URL } from "util/host-utils";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import jwtDecode from "jwt-decode";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
@@ -68,6 +69,7 @@ function Basic() {
 
   const [userId, setUserId] = useState();
   const [password, setPassword] = useState();
+  const [sns, setSns] = useState(0);
 
   const emailHandler = (e) => {
     setUserId(e.target.value);
@@ -149,6 +151,11 @@ function Basic() {
       });
   };
 
+  const googleLogin = (e) => {
+    e.preventDefault();
+    setSns(1);
+  };
+
   return (
     <>
       {!isLoggedIn && (
@@ -160,7 +167,7 @@ function Basic() {
               borderRadius="lg"
               coloredShadow="info"
               mx={2}
-              mt={-3}
+              mt={-8}
               p={2}
               mb={1}
               textAlign="center"
@@ -180,52 +187,98 @@ function Basic() {
                   </MDTypography>
                 </Grid>
                 <Grid item xs={2}>
-                  <MDTypography component={MuiLink} href="#" variant="body1" color="white">
+                  <MDTypography
+                    component={MuiLink}
+                    onClick={googleLogin}
+                    href="#"
+                    variant="body1"
+                    color="white"
+                  >
                     <GoogleIcon color="inherit" />
                   </MDTypography>
                 </Grid>
               </Grid>
             </MDBox>
             <MDBox pt={4} pb={3} px={3}>
-              <MDBox component="form" role="form">
-                <MDBox mb={2}>
-                  <MDInput type="email" label="Email" fullWidth onChange={emailHandler} />
-                </MDBox>
-                <MDBox mb={2}>
-                  <MDInput type="password" label="Password" fullWidth onChange={pwHandler} />
-                </MDBox>
-                <MDBox display="flex" alignItems="center" ml={-1}>
-                  <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-                  <MDTypography
-                    variant="button"
-                    fontWeight="regular"
-                    color="text"
-                    onClick={handleSetRememberMe}
-                    sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-                  >
-                    &nbsp;&nbsp;저장하기
-                  </MDTypography>
-                </MDBox>
-                <MDBox mt={4} mb={1}>
-                  <MDButton variant="gradient" color="info" fullWidth onClick={loginHandler}>
-                    로그인
-                  </MDButton>
-                </MDBox>
-                <MDBox mt={3} mb={1} textAlign="center">
-                  <MDTypography variant="button" color="text">
-                    회원이 아니신가요?{" "}
+              {sns === 0 && (
+                <MDBox component="form" role="form">
+                  <MDBox mb={2}>
+                    <MDInput type="email" label="Email" fullWidth onChange={emailHandler} />
+                  </MDBox>
+                  <MDBox mb={2}>
+                    <MDInput type="password" label="Password" fullWidth onChange={pwHandler} />
+                  </MDBox>
+                  <MDBox display="flex" alignItems="center" ml={-1}>
+                    <Switch checked={rememberMe} onChange={handleSetRememberMe} />
                     <MDTypography
-                      component={Link}
-                      to="/authentication/sign-up"
                       variant="button"
-                      color="info"
-                      fontWeight="medium"
-                      textGradient
+                      fontWeight="regular"
+                      color="text"
+                      onClick={handleSetRememberMe}
+                      sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
                     >
-                      회원가입하기
+                      &nbsp;&nbsp;저장하기
                     </MDTypography>
-                  </MDTypography>
+                  </MDBox>
+                  <MDBox mt={4} mb={1}>
+                    <MDButton variant="gradient" color="info" fullWidth onClick={loginHandler}>
+                      로그인
+                    </MDButton>
+                  </MDBox>
                 </MDBox>
+              )}
+              {sns === 1 && (
+                <MDBox display="flex" justifyContent="center" alignItems="center" mx={3}>
+                  <MDBox mt={3} mb={1} textAlign="center">
+                    <GoogleOAuthProvider
+                      clientId={
+                        "1085513147099-07sehglg71sajoag7bqbpovb49rivhpn.apps.googleusercontent.com"
+                      }
+                      onScriptLoadError={() => console.log("실패")}
+                      onScriptLoadSuccess={() => console.log("성공")}
+                    >
+                      <GoogleLogin
+                        size="large"
+                        width={1}
+                        onSuccess={(res) => {
+                          console.log(jwtDecode(res.credential));
+                        }}
+                        onError={(err) => {
+                          console.log(err);
+                        }}
+                      />
+                    </GoogleOAuthProvider>
+                  </MDBox>
+                </MDBox>
+              )}
+
+              <MDBox mt={3} mb={1} textAlign="center">
+                {sns !== 0 && (
+                  <MDTypography
+                    component={Link}
+                    onClick={() => setSns(0)}
+                    variant="button"
+                    color="info"
+                    fontWeight="medium"
+                    textGradient
+                  >
+                    회원으로 로그인
+                  </MDTypography>
+                )}
+                <br />
+                <MDTypography variant="button" color="text">
+                  회원이 아니신가요?{" "}
+                  <MDTypography
+                    component={Link}
+                    to="/authentication/sign-up"
+                    variant="button"
+                    color="info"
+                    fontWeight="medium"
+                    textGradient
+                  >
+                    회원가입하기
+                  </MDTypography>
+                </MDTypography>
               </MDBox>
             </MDBox>
           </Card>

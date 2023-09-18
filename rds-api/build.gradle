@@ -38,10 +38,11 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
 
-
 	// java mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	// google login
+	implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
 }
 
 tasks.named('test') {

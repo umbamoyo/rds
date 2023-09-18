@@ -395,7 +395,7 @@ function Cover() {
           borderRadius="lg"
           coloredShadow="success"
           mx={2}
-          mt={-3}
+          mt={-8}
           p={3}
           mb={1}
           textAlign="center"
