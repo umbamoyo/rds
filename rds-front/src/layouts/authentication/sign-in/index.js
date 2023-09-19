@@ -46,6 +46,7 @@ import CustomSnackBar from "components/MDSnackbar/CustomSnackbar";
 import { API_BASE_URL } from "util/host-utils";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import jwtDecode from "jwt-decode";
+import FacebookLogin from "react-facebook-login";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
@@ -156,6 +157,17 @@ function Basic() {
     setSns(1);
   };
 
+  const facebookLogin = (e) => {
+    e.preventDefault();
+    setSns(2);
+  };
+
+  const responseFacebook = async (response) => {
+    console.log(response);
+    console.log(response.email);
+    // console.log(jwtDecode(response.accessToken));
+  };
+
   return (
     <>
       {!isLoggedIn && (
@@ -177,7 +189,13 @@ function Basic() {
               </MDTypography>
               <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
                 <Grid item xs={2}>
-                  <MDTypography component={MuiLink} href="#" variant="body1" color="white">
+                  <MDTypography
+                    component={MuiLink}
+                    onClick={facebookLogin}
+                    href="#"
+                    variant="body1"
+                    color="white"
+                  >
                     <FacebookIcon color="inherit" />
                   </MDTypography>
                 </Grid>
@@ -248,6 +266,22 @@ function Basic() {
                         }}
                       />
                     </GoogleOAuthProvider>
+                  </MDBox>
+                </MDBox>
+              )}
+
+              {sns === 2 && (
+                <MDBox display="flex" justifyContent="center" alignItems="center" mx={3}>
+                  <MDBox mt={3} mb={1} textAlign="center">
+                    <FacebookLogin
+                      appId={"272051182316402"}
+                      autoLoad={true}
+                      scope="email"
+                      returnScopes="true"
+                      fields="name,email,picture"
+                      textButton="페이스북으로 로그인"
+                      callback={responseFacebook}
+                    />
                   </MDBox>
                 </MDBox>
               )}
